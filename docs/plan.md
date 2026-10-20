@@ -1,0 +1,56 @@
+# Plan del proyecto
+
+Última actualización: 2026-10-19
+
+## Alcance
+
+Portal de asistencia del área VIVE (Tecmilenio SLP) para:
+
+- **Selecciones y talleres** (fútbol, básquetbol, voleibol, tochito bandera, cocina, artes escénicas… y los que el coordinador agregue). Cada uno tiene una lista fija de alumnos.
+- **Gimnasio**: acceso libre, 2 turnos, registro de **entrada y salida** por alumno.
+
+Volumen estimado: unos 200 registros por semana. Hay internet en todas las instalaciones, así que no se requiere modo sin conexión.
+
+## Decisiones tomadas
+
+| Tema | Decisión |
+|---|---|
+| Stack | Next.js + Supabase (Postgres, Auth, RLS) + Vercel Hobby, todo en plan gratuito |
+| Uso de Vercel Hobby | Válido: es un proyecto sin remuneración ([fair use](https://vercel.com/docs/limits/fair-use-guidelines#commercial-usage)). Si se profesionaliza con personal pagado, migrar a Pro o a infraestructura de la universidad. |
+| Cuentas | **Solo el coordinador** crea y elimina las cuentas de entrenadores. No hay registro público. |
+| Contraseñas | Contraseña temporal asignada por el coordinador y **cambio obligatorio en el primer inicio de sesión**. No hay recuperación por correo: si alguien la olvida, el coordinador la restablece. |
+| Identificador de acceso | Correo institucional. Se usa solo como usuario; el sistema no envía correos. |
+| Primera cuenta de coordinador | Se crea manualmente desde el panel de Supabase. No se puede crear desde el portal. |
+| Eliminar entrenador | Se desactiva la cuenta y se conservan sus registros, por integridad. |
+| Correcciones del coordinador | Sobre el registro real, con **bitácora** automática. |
+| Estados de asistencia | `asistencia` o `falta`. No existe falta justificada. |
+| Incidencias | Texto libre por sesión |
+| Género | `femenino`, `masculino`, `no binario`. Solo en selecciones y talleres, no en gimnasio. |
+| Gimnasio | Modo kiosco: el entrenador abre el turno y cada alumno registra su entrada; al salir vuelve a capturar su matrícula. Si al cerrar el turno alguien no registró salida, queda marcado **"sin salida"**: no se inventa una hora. |
+| Dashboards | Uno para selecciones y talleres (con género) y otro para gimnasio (sin género). Filtros: semana, día, disciplina, asistencia o falta, género. Descarga PNG y elección del tipo de gráfica. |
+| Respaldos | El coordinador exporta a Excel cada semana y lo guarda en el almacenamiento institucional. Un cron diario de Vercel evita que Supabase se pause (el plan Free pausa tras 7 días sin actividad). |
+| Aviso de privacidad | Cubierto por el aviso de Tecmilenio, que se acepta al usar instalaciones y servicios |
+| Repositorio | Público, con protección de `main`, secret scanning y push protection |
+
+## Fases
+
+| Fase | Rama | Contenido | Estado |
+|---|---|---|---|
+| F0 | `chore/setup-proyecto` | Proyecto Next.js, tokens de diseño, logo y favicon, reglas del repo, CI | En curso |
+| F1 | `feature/auth-roles` | Supabase, inicio de sesión, cambio obligatorio de contraseña, roles, RLS, administración de cuentas | Pendiente |
+| F2 | `feature/catalogos` | Disciplinas, horarios, listas de alumnos con género | Pendiente |
+| F3 | `feature/captura-lista` | Sesiones, asistencia o falta, incidencias | Pendiente |
+| F4 | `feature/gimnasio-kiosco` | Turnos, entrada y salida | Pendiente |
+| F5 | `feature/admin-datos` | Tabla editable con bitácora | Pendiente |
+| F6 | `feature/dashboard` | Indicadores, gráficas, filtros, descarga | Pendiente |
+| F7 | `feature/respaldos` | Exportación a Excel, cron para evitar la pausa, inicio del piloto | Pendiente |
+
+## Modelo de datos (borrador, se detalla en F1 y F2)
+
+`perfiles`, `disciplinas` (tipo `lista` o `acceso_libre`), `entrenador_disciplina`, `alumnos` (matrícula única), `inscripciones`, `sesiones` (horario o turno, abierta o cerrada, incidencias), `asistencias` (una por alumno y sesión), `registros_gimnasio` (entrada, salida), `bitacora`.
+
+## Pendientes
+
+- Logotipos en mayor calidad o en SVG (los actuales son copias comprimidas).
+- Confirmar los colores exactos con el manual de marca: verde aprox. `#6dd34b`, teal aprox. `#0f524e`.
+- Confirmar el formato de la matrícula, para validarla al capturar.
