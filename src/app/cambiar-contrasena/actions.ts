@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { obtenerUsuario, rutaInicio } from "@/lib/auth/dal";
 import { esquemaPassword } from "@/lib/auth/password";
+import { registrarError } from "@/lib/registro";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
@@ -37,6 +38,7 @@ export async function cambiarPassword(
     password: datos.data.password,
   });
   if (error) {
+    registrarError("cambiar-contrasena:update-user", error);
     return {
       error:
         error.code === "same_password"
@@ -54,6 +56,7 @@ export async function cambiarPassword(
     .update({ debe_cambiar_password: false })
     .eq("id", usuario.id);
   if (errorPerfil) {
+    registrarError("cambiar-contrasena:completar-perfil", errorPerfil);
     return { error: "La contraseña cambió, pero no se pudo activar la cuenta. Avisa a coordinación." };
   }
 

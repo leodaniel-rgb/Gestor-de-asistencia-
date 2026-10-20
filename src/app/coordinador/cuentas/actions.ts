@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { generarPasswordTemporal } from "@/lib/auth/password";
+import { registrarError } from "@/lib/registro";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
@@ -44,6 +45,7 @@ export async function crearCuenta(
     email_confirm: true, // el portal no envía correos
   });
   if (errorAuth || !creado.user) {
+    registrarError("cuentas:crear-auth", errorAuth);
     const duplicado =
       errorAuth?.code === "email_exists" || errorAuth?.code === "user_already_exists";
     return {
@@ -63,6 +65,7 @@ export async function crearCuenta(
     creado_por: coordinador.id,
   });
   if (errorPerfil) {
+    registrarError("cuentas:crear-perfil", errorPerfil);
     // La cuenta de Auth aún no tiene perfil ni registros: se puede revertir.
     await admin.auth.admin.deleteUser(creado.user.id);
     return { error: "No se pudo crear el perfil. No se guardó nada." };
@@ -89,12 +92,16 @@ export async function restablecerPassword(
     .eq("activo", true)
     .select("nombre, correo")
     .maybeSingle();
-  if (error || !perfil) return { error: "No se encontró una cuenta activa." };
+  if (error || !perfil) {
+    registrarError("cuentas:restablecer-perfil", error);
+    return { error: "No se encontró una cuenta activa." };
+  }
 
   const password = generarPasswordTemporal();
   const admin = crearClienteAdmin();
   const { error: errorAuth } = await admin.auth.admin.updateUserById(id.data, { password });
   if (errorAuth) {
+    registrarError("cuentas:restablecer-auth", errorAuth);
     return { error: "No se pudo restablecer. La cuenta quedó bloqueada hasta reintentar." };
   }
 
@@ -118,7 +125,10 @@ export async function desactivarCuenta(
     .eq("id", id.data)
     .select("id")
     .maybeSingle();
-  if (error || !perfil) return { error: "No se encontró la cuenta." };
+  if (error || !perfil) {
+    registrarError("cuentas:desactivar-perfil", error);
+    return { error: "No se encontró la cuenta." };
+  }
 
   // Además se bloquea el inicio de sesión en Auth.
   const admin = crearClienteAdmin();
@@ -128,6 +138,7 @@ export async function desactivarCuenta(
 
   refresh();
   if (errorAuth) {
+    registrarError("cuentas:desactivar-auth", errorAuth);
     // El acceso ya está cortado por el perfil inactivo; el bloqueo es una capa extra.
     return { error: "Cuenta desactivada. El bloqueo adicional en Auth falló; avisa al responsable técnico." };
   }
