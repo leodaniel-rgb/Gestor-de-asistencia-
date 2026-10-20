@@ -5,6 +5,16 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Espera antes de proponer versiones recién publicadas: da tiempo a que se
+    # detecten paquetes comprometidos. No aplica a actualizaciones de seguridad.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    ignore:
+      # Los tipos deben coincidir con el Node que usamos (24.x, ver "engines").
+      # Se suben a mano cuando cambie la versión de Node en CI y Vercel.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       dependencias-menores:
         update-types: [minor, patch]
@@ -13,3 +23,5 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
