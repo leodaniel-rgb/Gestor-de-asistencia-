@@ -25,6 +25,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+          # v5 detecta "packageManager": "pnpm@..." e intenta cachear con pnpm
+          # antes de que exista en el runner. pnpm se activa en el paso siguiente.
+          package-manager-cache: false
 
       # Usa la versión de pnpm fijada en package.json ("packageManager").
       - run: corepack enable
