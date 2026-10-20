@@ -20,7 +20,7 @@ Reemplaza la captura en papel y Excel por un portal web donde:
 
 ## Desarrollo local
 
-Requisitos: Node.js 20.9 o superior y pnpm (vía Corepack: `corepack enable`).
+Requisitos: Node.js 24 y pnpm (vía Corepack: `corepack enable`).
 
 ```bash
 pnpm install
