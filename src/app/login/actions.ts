@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { rutaInicio, type Rol } from "@/lib/auth/dal";
+import { registrarError } from "@/lib/registro";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 export type EstadoLogin = { error?: string; correo?: string };
@@ -31,15 +32,20 @@ export async function iniciarSesion(
     email: datos.data.correo,
     password: datos.data.password,
   });
-  if (error || !data.user) return { error: ERROR_GENERICO, correo };
+  if (error || !data.user) {
+    // Credenciales incorrectas es lo normal; solo se registran fallos inesperados.
+    if (error && error.code !== "invalid_credentials") registrarError("login:sign-in", error);
+    return { error: ERROR_GENERICO, correo };
+  }
 
-  const { data: perfil } = await supabase
+  const { data: perfil, error: errorPerfil } = await supabase
     .from("perfiles")
     .select("rol, activo, debe_cambiar_password")
     .eq("id", data.user.id)
     .maybeSingle();
 
   if (!perfil || !perfil.activo) {
+    if (errorPerfil) registrarError("login:leer-perfil", errorPerfil);
     await supabase.auth.signOut();
     return { error: ERROR_GENERICO, correo };
   }

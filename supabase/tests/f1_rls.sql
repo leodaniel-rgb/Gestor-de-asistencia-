@@ -155,6 +155,23 @@ exception when insufficient_privilege then null;
 end $$;
 reset role;
 
+-- 17. El servidor (service_role) puede completar el cambio de contraseña ------
+set local role service_role;
+do $$ declare n int; begin
+  update public.perfiles set debe_cambiar_password = false
+  where id = '00000000-0000-0000-0000-0000000000e2';
+  get diagnostics n = row_count;
+  assert n = 1, 'Prueba 17 falló: service_role no pudo completar el cambio de contraseña';
+end $$;
+
+-- 18. …pero con la llave secreta no se puede cambiar nada más -----------------
+do $$ begin
+  update public.perfiles set rol = 'coordinador' where id = '00000000-0000-0000-0000-0000000000e2';
+  raise exception 'Prueba 18 falló: service_role pudo cambiar el rol';
+exception when insufficient_privilege then null;
+end $$;
+reset role;
+
 select 'F1 RLS: todas las pruebas pasaron' as resultado;
 
 rollback;

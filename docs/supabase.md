@@ -46,4 +46,16 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 
 | Migración | vive-dev | vive-prod |
 |---|---|---|
-| `20261019000100_f1_auth_roles.sql` | ☐ | ☐ |
+| `20261019000100_f1_auth_roles.sql` | ☑ | ☑ |
+| `20261020000100_f1_grants_service_role.sql` | ☐ | ☐ |
+
+## Permisos explícitos en cada tabla nueva
+
+Desde el 30/05/2026, Supabase **ya no otorga permisos automáticos** sobre tablas nuevas de `public` a `anon`, `authenticated` ni `service_role` ([changelog #45329](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically)). Sin `grant`, la API responde `42501 permission denied`, aunque las políticas RLS sean correctas.
+
+Cada migración que cree una tabla debe incluir, además de RLS:
+
+- `grant` a `authenticated` solo de las operaciones y columnas que usa el portal;
+- `grant` a `service_role` solo si el servidor la usa con la llave secreta (mínimo posible);
+- nada para `anon`;
+- una prueba en `supabase/tests/` por cada permiso.
