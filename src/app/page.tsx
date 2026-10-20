@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -32,12 +33,12 @@ export default function Home() {
           Registro de asistencia de selecciones, talleres y gimnasio, con
           gráficas y reportes generados automáticamente.
         </p>
-        <div className="mt-2 w-fit rounded-card bg-surface p-6 shadow-[inset_0_0_0_1px_var(--line)]">
-          <p className="text-sm text-fg-body">Portal en construcción</p>
-          <p className="mt-1 text-[13px] text-fg-faint">
-            Fase 0 · configuración del proyecto
-          </p>
-        </div>
+        <Link
+          href="/login"
+          className="mt-2 inline-flex h-10 w-fit items-center rounded-control bg-accent px-4 text-sm font-medium tracking-[-0.011em] text-on-accent hover:opacity-90"
+        >
+          Iniciar sesión
+        </Link>
       </main>
     </div>
   );

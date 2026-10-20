@@ -21,6 +21,10 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | Contraseñas | Contraseña temporal asignada por el coordinador y **cambio obligatorio en el primer inicio de sesión**. No hay recuperación por correo: si alguien la olvida, el coordinador la restablece. |
 | Identificador de acceso | Correo institucional. Se usa solo como usuario; el sistema no envía correos. |
 | Primera cuenta de coordinador | Se crea manualmente desde el panel de Supabase. No se puede crear desde el portal. |
+| Número de coordinadores | Uno solo (índice único en la base) |
+| Migraciones | Sin Docker: se aplican a mano en el SQL Editor, primero en vive-dev con sus pruebas de RLS y luego en vive-prod ([docs/supabase.md](supabase.md)) |
+| Contraseñas temporales | Generadas por el sistema (14 caracteres), se muestran una sola vez al coordinador |
+| Navegador y Supabase | El navegador nunca habla directo con Supabase: todo pasa por Server Actions (CSP `connect-src 'self'`) |
 | Eliminar entrenador | Se desactiva la cuenta y se conservan sus registros, por integridad. |
 | Correcciones del coordinador | Sobre el registro real, con **bitácora** automática. |
 | Estados de asistencia | `asistencia` o `falta`. No existe falta justificada. |
@@ -36,8 +40,8 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 
 | Fase | Rama | Contenido | Estado |
 |---|---|---|---|
-| F0 | `chore/setup-proyecto` | Proyecto Next.js, tokens de diseño, logo y favicon, reglas del repo, CI | En curso |
-| F1 | `feature/auth-roles` | Supabase, inicio de sesión, cambio obligatorio de contraseña, roles, RLS, administración de cuentas | Pendiente |
+| F0 | `chore/setup-proyecto` | Proyecto Next.js, tokens de diseño, logo y favicon, reglas del repo, CI | Hecha |
+| F1 | `feature/auth-roles` | Supabase, inicio de sesión, cambio obligatorio de contraseña, roles, RLS, administración de cuentas | En revisión |
 | F2 | `feature/catalogos` | Disciplinas, horarios, listas de alumnos con género | Pendiente |
 | F3 | `feature/captura-lista` | Sesiones, asistencia o falta, incidencias | Pendiente |
 | F4 | `feature/gimnasio-kiosco` | Turnos, entrada y salida | Pendiente |
