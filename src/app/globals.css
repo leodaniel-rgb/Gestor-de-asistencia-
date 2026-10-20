@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de diseño: estructura "Linear" (docs/diseno.md) con identidad Tecmilenio.
+ * Tema oscuro por defecto (portal del coordinador).
+ * Tema claro con data-theme="light" (pantallas de captura, legibles al sol).
+ * Verde y teal medidos del logo proporcionado: confirmar con el manual de marca.
+ */
+:root {
+  --canvas: #08090a;
+  --surface: #0f1011;
+  --elevated: #161718;
+  --line: #23252a;
+  --line-strong: #383b3f;
+  --fg: #ffffff;
+  --fg-body: #d0d6e0;
+  --fg-muted: #8a8f98;
+  --fg-faint: #62666d;
+  --accent: #6dd34b; /* verde Tecmilenio (aprox.) — contraste 10.5:1 con --on-accent */
+  --on-accent: #08090a;
+  --brand-teal: #0f524e;
+  --success: #27a644;
+  --danger: #eb5757;
+  --info: #02b8cc;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --canvas: #ffffff;
+  --surface: #f7f8f8;
+  --elevated: #eff1f2;
+  --line: #e1e4e8;
+  --line-strong: #c9ced4;
+  --fg: #08090a;
+  --fg-body: #23252a;
+  --fg-muted: #4f545b;
+  --fg-faint: #62666d;
+  --accent: #0f524e; /* teal Tecmilenio: el verde no alcanza contraste sobre blanco */
+  --on-accent: #ffffff;
+  --success: #1d7f34;
+  --danger: #c93b3b;
+  --info: #027a88;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-body: var(--fg-body);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-faint: var(--fg-faint);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-brand-green: #6dd34b;
+  --color-brand-teal: var(--brand-teal);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --radius-badge: 4px;
+  --radius-control: 6px;
+  --radius-card: 12px;
+
+  --font-weight-medium: 510;
+  --font-weight-semibold: 590;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--fg-body);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv01" on, "ss03" on, "zero" on;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
