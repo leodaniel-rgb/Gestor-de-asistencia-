@@ -33,6 +33,12 @@ jobs:
       - run: corepack enable
 
       - run: pnpm install --frozen-lockfile
+      # Valores ficticios: el build valida el formato de las variables públicas,
+      # pero la CI nunca se conecta a Supabase ni usa llaves reales.
+      - name: Variables ficticias para el build
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=https://ci.supabase.invalid" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci" >> "$GITHUB_ENV"
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm build

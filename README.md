@@ -40,6 +40,7 @@ pnpm build
 
 - [Plan del proyecto y decisiones](docs/plan.md)
 - [Sistema de diseño](docs/diseno.md)
+- [Operación de Supabase: migraciones, pruebas y coordinador](docs/supabase.md)
 - [Reglas de contribución y Git](CONTRIBUTING.md)
 - [Política de seguridad y datos](SECURITY.md)
 

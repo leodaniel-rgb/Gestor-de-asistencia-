@@ -1,9 +1,27 @@
 import type { NextConfig } from "next";
 
-// Encabezados de seguridad básicos para todas las rutas.
-// La Content-Security-Policy se agrega en F1, cuando se conozcan los
-// dominios de Supabase que debe permitir.
+const isDev = process.env.NODE_ENV === "development";
+
+// CSP sin nonces (guía oficial de Next.js). El navegador nunca habla
+// directo con Supabase: todo pasa por Server Actions, así que connect-src
+// se queda en 'self'.
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' blob: data:",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
+// Encabezados de seguridad para todas las rutas.
 const securityHeaders = [
+  { key: "Content-Security-Policy", value: csp },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
