@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { Aviso, Boton, Tarjeta } from "@/components/ui";
 import { corregirAsistencia, registrarAsistencia } from "@/app/entrenador/acciones-asistencia";
+import { capturarSesionAdmin, corregirSesionAdmin } from "@/app/coordinador/registros/acciones";
 import { describirFecha } from "@/lib/fechas";
 
 type Estado = "asistio" | "falta";
@@ -26,6 +27,9 @@ type Props = {
 } & (
   | { modo: "registrar"; fechas: string[]; hoy: string }
   | { modo: "corregir"; sesionId: string; fechaFija: string; hoy: string }
+  // Coordinación: sin ventana de tiempo, con motivo obligatorio.
+  | { modo: "admin-corregir"; sesionId: string; fechaFija: string; hoy: string }
+  | { modo: "admin-capturar"; hoy: string }
 );
 
 function BotonMarca({
@@ -61,7 +65,11 @@ export function PaseDeLista(props: Props) {
   const [marcas, setMarcas] = useState<Record<string, Estado | undefined>>(() =>
     Object.fromEntries(filas.map((f) => [f.clave, f.estadoInicial])),
   );
-  const [fecha, setFecha] = useState(props.modo === "registrar" ? props.fechas[0] : props.fechaFija);
+  const [fecha, setFecha] = useState(
+    props.modo === "registrar" ? props.fechas[0] : props.modo === "admin-capturar" ? props.hoy : props.fechaFija,
+  );
+  const [motivo, setMotivo] = useState("");
+  const esAdmin = props.modo === "admin-corregir" || props.modo === "admin-capturar";
   const [hora, setHora] = useState(props.horaInicial);
   const [incidencias, setIncidencias] = useState<Incidencia[]>(props.incidenciasIniciales ?? []);
   const [error, setError] = useState<string>();
@@ -84,9 +92,32 @@ export function PaseDeLista(props: Props) {
       categoria_id: i.categoria_id,
       descripcion: i.descripcion.trim() || undefined,
     }));
+    const marcasNuevas = filas.map((f) =>
+      f.tipo === "alumno"
+        ? { alumno_id: f.clave, estado: marcas[f.clave]! }
+        : { solicitud_id: f.clave, estado: marcas[f.clave]! },
+    );
+    const marcasExistentes = filas.map((f) => ({ id: f.clave, estado: marcas[f.clave]! }));
     iniciar(async () => {
       const r =
-        props.modo === "registrar"
+        props.modo === "admin-corregir"
+          ? await corregirSesionAdmin({
+              sesion_id: props.sesionId,
+              hora,
+              marcas: marcasExistentes,
+              incidencias: incidenciasLimpias,
+              motivo,
+            })
+          : props.modo === "admin-capturar"
+            ? await capturarSesionAdmin({
+                disciplina_id: disciplinaId,
+                fecha,
+                hora,
+                marcas: marcasNuevas,
+                incidencias: incidenciasLimpias,
+                motivo,
+              })
+            : props.modo === "registrar"
           ? await registrarAsistencia({
               disciplina_id: disciplinaId,
               fecha,
@@ -115,7 +146,15 @@ export function PaseDeLista(props: Props) {
       <Tarjeta className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5 text-[13px] text-fg-muted">
           Fecha
-          {props.modo === "registrar" ? (
+          {props.modo === "admin-capturar" ? (
+            <input
+              type="date"
+              value={fecha}
+              max={props.hoy}
+              onChange={(e) => setFecha(e.target.value)}
+              className="h-11 rounded-control border border-line bg-surface px-3 text-[15px] text-fg"
+            />
+          ) : props.modo === "registrar" ? (
             <select
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
@@ -245,12 +284,27 @@ export function PaseDeLista(props: Props) {
         )}
       </Tarjeta>
 
+      {esAdmin && (
+        <label className="flex flex-col gap-1.5 text-[13px] text-fg-muted">
+          Motivo {props.modo === "admin-capturar" ? "de la captura" : "de la corrección"} (queda en el historial)
+          <textarea
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            maxLength={300}
+            rows={2}
+            placeholder={props.modo === "admin-capturar" ? "Ej. Lista en papel entregada por el entrenador" : "Ej. El entrenador marcó falta por error"}
+            className="rounded-control border border-line bg-surface px-3 py-2 text-[15px] text-fg"
+          />
+        </label>
+      )}
       {error && <Aviso>{error}</Aviso>}
       <Boton
         type="button"
         variante="primario"
         onClick={guardar}
-        disabled={pendiente || conteo.sinMarcar > 0 || incidenciaIncompleta || !hora}
+        disabled={
+          pendiente || conteo.sinMarcar > 0 || incidenciaIncompleta || !hora || (esAdmin && motivo.trim().length < 5)
+        }
         className="h-12 w-full sm:w-fit"
       >
         {pendiente
@@ -259,7 +313,9 @@ export function PaseDeLista(props: Props) {
             ? `Faltan ${conteo.sinMarcar} por marcar`
             : props.modo === "registrar"
               ? "Guardar asistencia"
-              : "Guardar corrección"}
+              : props.modo === "admin-capturar"
+                ? "Guardar captura"
+                : "Guardar corrección"}
       </Boton>
     </div>
   );

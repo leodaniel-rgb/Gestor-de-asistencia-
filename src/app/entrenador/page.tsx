@@ -33,8 +33,12 @@ async function MisDisciplinas() {
       .eq("activa", true)
       .is("inscripciones.fecha_baja", null)
       .order("nombre"),
-    supabase.from("sesiones").select("disciplina_id").eq("fecha", hoy),
-    supabase.from("dias_sin_clase").select("disciplina_id, catalogo_opciones(nombre)").eq("fecha", hoy),
+    supabase.from("sesiones").select("disciplina_id").eq("fecha", hoy).eq("anulada", false),
+    supabase
+      .from("dias_sin_clase")
+      .select("disciplina_id, catalogo_opciones(nombre)")
+      .eq("fecha", hoy)
+      .eq("anulado", false),
     supabase
       .from("catalogo_opciones")
       .select("id, nombre")
@@ -43,7 +47,7 @@ async function MisDisciplinas() {
       .order("creado_en"),
     supabase
       .from("turnos_gimnasio")
-      .select("id, disciplina_id, nombre, abierto_en, registros_gimnasio(salida)")
+      .select("id, disciplina_id, nombre, abierto_en, registros_gimnasio(salida, anulado)")
       .is("cerrado_en", null),
   ]);
 
@@ -64,8 +68,8 @@ async function MisDisciplinas() {
       disciplina_id: string;
       nombre: NombreTurno | null;
       abierto_en: string;
-      registros_gimnasio: { salida: string | null }[];
-    }[]).map((t) => [t.disciplina_id, t]),
+      registros_gimnasio: { salida: string | null; anulado: boolean }[];
+    }[]).map((t) => [t.disciplina_id, { ...t, registros_gimnasio: t.registros_gimnasio.filter((x) => !x.anulado) }]),
   );
 
   // Primero las que hoy son día habitual y aún no tienen respuesta.

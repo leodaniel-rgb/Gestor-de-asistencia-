@@ -3,11 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
-import { AlumnoEditable, type AlumnoFila } from "@/components/alumno-editable";
+import { type AlumnoFila } from "@/components/alumno-editable";
 import { BotonConfirmar } from "@/components/boton-confirmar";
 import { Tarjeta } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
-import { ETIQUETA_TIPO, formatearFecha, type TipoDisciplina } from "@/lib/catalogos";
+import { ETIQUETA_GENERO, ETIQUETA_TIPO, formatearFecha, type TipoDisciplina } from "@/lib/catalogos";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { darDeBaja, quitarEntrenador } from "../actions";
 import {
@@ -127,19 +127,35 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
             <ul className="divide-y divide-line rounded-card px-4 shadow-[inset_0_0_0_1px_var(--line)]">
               {inscripciones.map((i) => (
                 <li key={i.id}>
-                  <AlumnoEditable
-                    alumno={i.alumnos!}
-                    editarMatricula
-                    detalle={`Inscrito desde ${formatearFecha(i.fecha_alta)}`}
-                    accionesExtra={
+                  <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col">
+                      <span className="text-[15px] text-fg">{i.alumnos!.nombre}</span>
+                      <span className="text-[13px] text-fg-muted">
+                        <span className="font-mono">{i.alumnos!.matricula}</span> ·{" "}
+                        {i.alumnos!.genero ? (
+                          ETIQUETA_GENERO[i.alumnos!.genero]
+                        ) : (
+                          <span className="text-info">Género sin asignar</span>
+                        )}{" "}
+                        · Inscrito desde {formatearFecha(i.fecha_alta)}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      {/* Las correcciones de la coordinación piden motivo: se hacen en la ficha del alumno. */}
+                      <Link
+                        href={`/coordinador/alumnos/${i.alumnos!.id}`}
+                        className="inline-flex h-9 items-center rounded-control border border-line px-3 text-[13px] text-fg-body hover:bg-elevated"
+                      >
+                        Corregir datos
+                      </Link>
                       <BotonConfirmar
                         accion={darDeBaja}
                         campos={{ inscripcion_id: i.id }}
                         texto="Dar de baja"
                         textoConfirmar="Confirmar baja"
                       />
-                    }
-                  />
+                    </div>
+                  </div>
                 </li>
               ))}
             </ul>

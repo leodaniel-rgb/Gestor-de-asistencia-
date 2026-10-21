@@ -39,6 +39,7 @@ type SesionReciente = {
   fecha: string;
   hora_inicio: string;
   registro_tardio: boolean;
+  anulada: boolean;
   creado_en: string;
   asistencias: { estado: "asistio" | "falta" }[];
 };
@@ -74,7 +75,7 @@ async function Lista({
       .limit(20),
     supabase
       .from("sesiones")
-      .select("id, fecha, hora_inicio, registro_tardio, creado_en, asistencias(estado)")
+      .select("id, fecha, hora_inicio, registro_tardio, anulada, creado_en, asistencias(estado)")
       .eq("disciplina_id", id.data)
       .order("fecha", { ascending: false })
       .order("hora_inicio", { ascending: false })
@@ -170,7 +171,7 @@ async function Lista({
               <ul className="divide-y divide-line rounded-card bg-surface px-4 shadow-[inset_0_0_0_1px_var(--line)]">
                 {sesiones.map((s) => {
                   const asistieron = s.asistencias.filter((a) => a.estado === "asistio").length;
-                  const corregible = ventanaCorreccion(s.creado_en).abierta;
+                  const corregible = !s.anulada && ventanaCorreccion(s.creado_en).abierta;
                   return (
                     <li key={s.id}>
                       <Link
@@ -181,6 +182,7 @@ async function Lista({
                           <span className="text-sm text-fg">
                             {describirFecha(s.fecha, hoy)}, {s.hora_inicio.slice(0, 5)}
                             {s.registro_tardio && <span className="text-[13px] text-info"> · Registro tardío</span>}
+                            {s.anulada && <span className="text-[13px] text-danger"> · Anulada por coordinación</span>}
                           </span>
                           <span className="text-[13px] text-fg-muted">
                             {asistieron} de {s.asistencias.length} asistieron
