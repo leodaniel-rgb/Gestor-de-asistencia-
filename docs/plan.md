@@ -48,8 +48,8 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 |---|---|---|---|
 | F0 | `chore/setup-proyecto` | Proyecto Next.js, tokens de diseño, logo y favicon, reglas del repo, CI | Hecha |
 | F1 | `feature/auth-roles` | Supabase, inicio de sesión, cambio obligatorio de contraseña, roles, RLS, administración de cuentas | Hecha |
-| F2a | `feature/catalogos` | Disciplinas (con días habituales opcionales), asignación de entrenadores, alumnos e inscripciones | En revisión |
-| F2b | `feature/importacion-solicitudes` | Importación desde Excel, sugerencias de alumnos por entrenadores con aprobación | Pendiente |
+| F2a | `feature/catalogos` | Disciplinas (con días habituales opcionales), asignación de entrenadores, alumnos e inscripciones | Hecha |
+| F2b | `feature/importacion-solicitudes` | Importación desde Excel (`read-excel-file`, leído en el navegador), sugerencias de alta y reportes de baja con aprobación | En revisión |
 | F3 | `feature/captura-lista` | Sesiones, asistencia o falta, incidencias | Pendiente |
 | F4 | `feature/gimnasio-kiosco` | Turnos, entrada y salida | Pendiente |
 | F5 | `feature/admin-datos` | Tabla editable con bitácora | Pendiente |

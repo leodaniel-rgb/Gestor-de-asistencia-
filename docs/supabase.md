@@ -49,7 +49,8 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 |---|---|---|
 | `20261019000100_f1_auth_roles.sql` | ☑ | ☑ |
 | `20261020000100_f1_grants_service_role.sql` | ☑ | ☑ |
-| `20261021000100_f2a_catalogos.sql` | ☐ | ☐ |
+| `20261021000100_f2a_catalogos.sql` | ☑ | ☐ |
+| `20261022000100_f2b_importacion_solicitudes.sql` | ☐ | ☐ |
 
 ## Permisos explícitos en cada tabla nueva
 
@@ -61,3 +62,5 @@ Cada migración que cree una tabla debe incluir, además de RLS:
 - `grant` a `service_role` solo si el servidor la usa con la llave secreta (mínimo posible);
 - nada para `anon`;
 - una prueba en `supabase/tests/` por cada permiso.
+
+Lo mismo para **funciones** en `public`: Postgres da `EXECUTE` a `PUBLIC` por defecto. Cada función nueva lleva `revoke all … from public, anon` y `grant execute … to authenticated`.
