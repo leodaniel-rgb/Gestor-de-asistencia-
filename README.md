@@ -41,6 +41,7 @@ pnpm build
 - [Plan del proyecto y decisiones](docs/plan.md)
 - [Sistema de diseño](docs/diseno.md)
 - [Operación de Supabase: migraciones, pruebas y coordinador](docs/supabase.md)
+- [Instalar la app y preparar el kiosco del gimnasio](docs/instalar-app.md)
 - [Reglas de contribución y Git](CONTRIBUTING.md)
 - [Política de seguridad y datos](SECURITY.md)
 
