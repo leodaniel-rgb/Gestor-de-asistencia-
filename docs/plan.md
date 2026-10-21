@@ -25,6 +25,9 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | Matrícula | `AL` + 8 dígitos que empiezan con 0 (`AL07210101`). Se acepta `07210101`; `7210101` pide confirmar `AL07210101` |
 | Horarios | No hay catálogo de horarios. El coordinador puede marcar **días habituales** por disciplina (opcional): solo definen cuándo se muestra el recordatorio |
 | Recordatorio (F3) | Días habituales: "¿Hoy tuviste clase? Si la tuviste, regístrala; si no, la coordinación la tomará como que no hubo" con [Sí, registrar] / [No hubo clase]. Otros días: solo la pregunta. Si no se contesta, no se escribe nada |
+| Captura (F3) | Hoy y hasta 3 días atrás (los días anteriores quedan como *registro tardío*). Todos empiezan sin marcar; "Marcar todos como asistió" al final de la lista solo marca a los pendientes. No se guarda con alumnos sin marcar |
+| Corrección (F3) | El entrenador corrige sus sesiones durante 24 h desde que las registró; después, solo el coordinador (F5) |
+| Catálogos (F3) | Motivos de "No hubo clase" y categorías de incidencia: el coordinador agrega o quita opciones, máximo 6 activas por catálogo |
 | Alumnos | Uno por matrícula aunque esté en varias disciplinas; un nombre existente no se sobrescribe al inscribir. El entrenador corrige nombre y género de sus alumnos; la matrícula y las bajas, solo el coordinador |
 | Autollenado en kiosco (F4) | Búsqueda por matrícula exacta al completar los dígitos; muestra "Nombre I." y solo con un turno abierto |
 | Alumnos sugeridos (F2b) | El entrenador propone, el coordinador aprueba. Asistencia "pendiente" mientras tanto: cuenta si se aprueba, se excluye (sin borrarse) si se rechaza |
@@ -49,8 +52,8 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | F0 | `chore/setup-proyecto` | Proyecto Next.js, tokens de diseño, logo y favicon, reglas del repo, CI | Hecha |
 | F1 | `feature/auth-roles` | Supabase, inicio de sesión, cambio obligatorio de contraseña, roles, RLS, administración de cuentas | Hecha |
 | F2a | `feature/catalogos` | Disciplinas (con días habituales opcionales), asignación de entrenadores, alumnos e inscripciones | Hecha |
-| F2b | `feature/importacion-solicitudes` | Importación desde Excel (`read-excel-file`, leído en el navegador), sugerencias de alta y reportes de baja con aprobación | En revisión |
-| F3 | `feature/captura-lista` | Sesiones, asistencia o falta, incidencias | Pendiente |
+| F2b | `feature/importacion-solicitudes` | Importación desde Excel (`read-excel-file`, leído en el navegador), sugerencias de alta y reportes de baja con aprobación | Hecha |
+| F3 | `feature/captura-asistencia` | Recordatorio, pase de lista, incidencias, "No hubo clase", corrección en 24 h, catálogos | En revisión |
 | F4 | `feature/gimnasio-kiosco` | Turnos, entrada y salida | Pendiente |
 | F5 | `feature/admin-datos` | Tabla editable con bitácora | Pendiente |
 | F6 | `feature/dashboard` | Indicadores, gráficas, filtros, descarga | Pendiente |
