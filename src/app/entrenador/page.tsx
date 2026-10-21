@@ -1,46 +1,68 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
 import { requerirUsuario } from "@/lib/auth/dal";
-import { cerrarSesion } from "@/lib/auth/acciones";
-import { Tarjeta } from "@/components/ui";
+import { describirDias, type TipoDisciplina } from "@/lib/catalogos";
+import { crearClienteServidor } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Inicio" };
+export const metadata: Metadata = { title: "Mis disciplinas" };
 
-async function Bienvenida() {
+type Fila = {
+  id: string;
+  nombre: string;
+  tipo: TipoDisciplina;
+  dias_clase: number[];
+  inscripciones: { count: number }[];
+};
+
+async function MisDisciplinas() {
   const usuario = await requerirUsuario("entrenador");
+  const supabase = await crearClienteServidor();
+  // RLS ya limita a las disciplinas asignadas a este entrenador.
+  const { data, error } = await supabase
+    .from("disciplinas")
+    .select("id, nombre, tipo, dias_clase, inscripciones(count)")
+    .eq("activa", true)
+    .is("inscripciones.fecha_baja", null)
+    .order("nombre");
+
+  const filas = (data ?? []) as unknown as Fila[];
+
   return (
     <>
       <h1 className="text-2xl font-medium tracking-[-0.012em] text-fg">Hola, {usuario.nombre}</h1>
-      <Tarjeta>
-        <p className="text-sm text-fg-body">Aquí registrarás la asistencia de tus disciplinas.</p>
-        <p className="mt-1 text-[13px] text-fg-muted">Disponible en la siguiente fase del portal.</p>
-      </Tarjeta>
+      {error ? (
+        <p className="text-sm text-danger">No se pudieron cargar tus disciplinas.</p>
+      ) : filas.length === 0 ? (
+        <p className="text-sm text-fg-muted">
+          Aún no tienes disciplinas asignadas. Pide a la coordinación VIVE que te asigne.
+        </p>
+      ) : (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {filas.map((d) => (
+            <li key={d.id}>
+              <Link
+                href={`/entrenador/disciplinas/${d.id}`}
+                className="flex min-h-24 flex-col justify-between gap-2 rounded-card bg-surface p-5 shadow-[inset_0_0_0_1px_var(--line)] hover:bg-elevated"
+              >
+                <span className="text-lg font-medium text-fg">{d.nombre}</span>
+                <span className="text-[13px] text-fg-muted">
+                  {d.tipo === "lista" ? `${d.inscripciones[0]?.count ?? 0} alumnos · ` : "Acceso libre · "}
+                  {describirDias(d.dias_clase)}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }
 
 export default function PaginaEntrenador() {
   return (
-    <div data-theme="light" className="flex flex-1 flex-col bg-canvas">
-      <header className="border-b border-line">
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Image src="/brand/simbolo-tecmilenio.png" alt="" width={24} height={24} />
-            <span className="text-[15px] font-medium text-fg">Asistencia VIVE</span>
-          </div>
-          <form action={cerrarSesion}>
-            <button type="submit" className="rounded-control px-3 py-2 text-[13px] text-fg-body hover:bg-elevated">
-              Cerrar sesión
-            </button>
-          </form>
-        </div>
-      </header>
-      <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-10">
-        <Suspense fallback={<p className="text-sm text-fg-muted">Cargando…</p>}>
-          <Bienvenida />
-        </Suspense>
-      </main>
-    </div>
+    <Suspense fallback={<p className="text-sm text-fg-muted">Cargando…</p>}>
+      <MisDisciplinas />
+    </Suspense>
   );
 }

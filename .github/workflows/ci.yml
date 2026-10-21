@@ -41,4 +41,5 @@ jobs:
           echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci" >> "$GITHUB_ENV"
       - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm build

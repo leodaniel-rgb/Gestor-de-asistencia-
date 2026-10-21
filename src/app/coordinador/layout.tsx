@@ -24,13 +24,16 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
       <header className="border-b border-line">
         <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-6">
-            <Link href="/coordinador/cuentas" className="flex items-center gap-3">
+            <Link href="/coordinador/disciplinas" className="flex items-center gap-3">
               <Image src="/brand/simbolo-tecmilenio.png" alt="" width={24} height={24} />
               <span className="text-[15px] font-medium tracking-[-0.011em] text-fg">
                 Asistencia VIVE
               </span>
             </Link>
             <nav className="flex items-center gap-1 text-[13px]">
+              <Link href="/coordinador/disciplinas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
+                Disciplinas
+              </Link>
               <Link href="/coordinador/cuentas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Cuentas
               </Link>

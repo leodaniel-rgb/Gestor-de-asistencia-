@@ -23,7 +23,8 @@ No usamos Docker ni la CLI de Supabase: las migraciones se aplican a mano en el 
 ## Pruebas de RLS
 
 1. En **vive-dev** (nunca en producción) → SQL Editor, pega `supabase/tests/<archivo>.sql` completo y ejecuta.
-2. Resultado esperado: `F1 RLS: todas las pruebas pasaron`. Si una regla falla, el error dice el número de prueba.
+2. Resultado esperado: `F1 RLS: todas las pruebas pasaron` (o `F2a …`, según el archivo). Si una regla falla, el error dice el número de prueba.
+   Las pruebas degradan temporalmente al coordinador de vive-dev y usan correos `@rls-fixture.invalid`; todo se revierte.
 3. El script termina en `rollback`: no deja datos.
 
 ## Crear el coordinador inicial (una sola vez por proyecto)
@@ -47,7 +48,8 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 | Migración | vive-dev | vive-prod |
 |---|---|---|
 | `20261019000100_f1_auth_roles.sql` | ☑ | ☑ |
-| `20261020000100_f1_grants_service_role.sql` | ☐ | ☐ |
+| `20261020000100_f1_grants_service_role.sql` | ☑ | ☑ |
+| `20261021000100_f2a_catalogos.sql` | ☐ | ☐ |
 
 ## Permisos explícitos en cada tabla nueva
 
