@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { cerrarSesion } from "@/lib/auth/acciones";
+import { diasDesde, DIAS_RECORDATORIO_RESPALDO } from "@/lib/fechas";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 async function UsuarioActual() {
@@ -31,6 +32,26 @@ async function ContadorSolicitudes() {
     <span className="rounded-full bg-accent px-1.5 text-[11px] font-medium text-on-accent" aria-label={`${count} pendientes`}>
       {count}
     </span>
+  );
+}
+
+/** Recordatorio si el último respaldo tiene más de 15 días (o nunca se ha hecho). */
+async function AvisoRespaldo() {
+  await requerirUsuario("coordinador");
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.rpc("ultimo_respaldo");
+  if (error) return null;
+  const ultimo = data as string | null;
+  const dias = ultimo ? diasDesde(ultimo) : null;
+  if (dias !== null && dias < DIAS_RECORDATORIO_RESPALDO) return null;
+  return (
+    <Link
+      href="/coordinador/respaldo"
+      className="rounded-control border border-info/40 bg-info/10 px-4 py-3 text-sm text-fg-body hover:bg-info/15 print:hidden"
+    >
+      {ultimo ? `Último respaldo: hace ${dias} días.` : "Aún no hay ningún respaldo."} Descárgalo y guárdalo en el
+      almacenamiento institucional →
+    </Link>
   );
 }
 
@@ -74,6 +95,9 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
               <Link href="/coordinador/cuentas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Cuentas
               </Link>
+              <Link href="/coordinador/respaldo" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
+                Respaldo
+              </Link>
             </nav>
           </div>
           <Suspense>
@@ -81,7 +105,12 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
           </Suspense>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-10">{children}</main>
+      <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-6 px-4 py-10">
+        <Suspense>
+          <AvisoRespaldo />
+        </Suspense>
+        <div>{children}</div>
+      </main>
     </div>
   );
 }

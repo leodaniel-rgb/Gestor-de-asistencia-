@@ -10,7 +10,8 @@ Este portal maneja **datos personales reales** de alumnos (nombre, matrícula, g
 4. **RLS en todas las tablas.** La autorización se aplica en la base de datos, no ocultando botones.
 5. **Integridad.** Los registros de asistencia no se borran físicamente. Cada corrección queda en la bitácora: quién, qué, valor anterior, valor nuevo y cuándo. Eliminar la cuenta de un entrenador **no** elimina las asistencias que registró.
 6. **Mínimo privilegio.** Los entrenadores solo ven y capturan sus disciplinas. Solo el coordinador ve reportes, corrige datos y administra cuentas.
-7. **Respaldos.** El coordinador descarga el respaldo en Excel cada semana y lo guarda en el almacenamiento institucional (OneDrive o SharePoint), nunca en este repo.
+7. **Respaldos.** El coordinador descarga el respaldo en Excel al menos cada 15 días y lo guarda **solo** en el almacenamiento institucional (OneDrive o SharePoint): nunca en este repo, ni por correo o WhatsApp. El archivo no tiene contraseña. Cada descarga (respaldo o Excel de reportes) queda registrada en la bitácora.
+8. **Cron.** La ruta `/api/cron/mantener-activo` solo responde con el `CRON_SECRET` correcto y no lee datos.
 
 ## Si se filtra un secreto
 

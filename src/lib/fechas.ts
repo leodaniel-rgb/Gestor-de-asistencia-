@@ -76,3 +76,10 @@ export function rangoPeriodo(periodo: Exclude<Periodo, "libre">, hoy: string): {
   if (periodo === "semana-pasada") return { desde: sumarDias(lunes, -7), hasta: sumarDias(lunes, -1) };
   return { desde: `${hoy.slice(0, 8)}01`, hasta: hoy };
 }
+
+export const DIAS_RECORDATORIO_RESPALDO = 15;
+
+/** Días completos transcurridos desde un `timestamptz` (se evalúa por petición, en el servidor). */
+export function diasDesde(ts: string, ahora: number = Date.now()): number {
+  return Math.floor((ahora - new Date(ts).getTime()) / (24 * 60 * 60 * 1000));
+}
