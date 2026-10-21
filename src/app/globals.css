@@ -83,3 +83,23 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Impresión / "Guardar como PDF": papel blanco con tinta oscura. */
+@media print {
+  :root,
+  [data-theme] {
+    --canvas: #ffffff;
+    --surface: #ffffff;
+    --elevated: #f4f5f6;
+    --line: #d9dce0;
+    --line-strong: #c3c7cc;
+    --fg: #0b0b0b;
+    --fg-body: #23252a;
+    --fg-muted: #52514e;
+    --fg-faint: #62666d;
+    color-scheme: light;
+  }
+  header {
+    display: none;
+  }
+}

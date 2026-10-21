@@ -29,6 +29,7 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | Corrección (F3) | El entrenador corrige sus sesiones durante 24 h desde que las registró; después, solo el coordinador (F5) |
 | Gimnasio (F4) | El entrenador elige Mañana, Tarde o "solo la hora" (sugerido por la hora: antes de 13:00 mañana, desde 15:00 tarde) y el dispositivo del kiosco (celular, tablet o computadora). Un solo turno abierto; si se olvida cerrarlo, se cierra automáticamente al abrir el siguiente. Sin salida → "sin salida", sin inventar la hora. Alumno nuevo se registra desde el kiosco sin aprobación. Búsquedas: "Nombre I.", máx. 30 por minuto por turno. Salir del kiosco o cerrar turno desde el kiosco pide la contraseña del entrenador |
 | Correcciones (F5) | La coordinación corrige sin límite de tiempo mediante funciones que exigen un motivo (queda en la bitácora). Nada se borra: sesiones, registros de gimnasio y días sin clase se **anulan** y se pueden restaurar. Las salidas puestas por la coordinación quedan como *salida corregida*. La captura por coordinación solo consulta la lista cuando se elige la disciplina |
+| Dashboards (F6) | Solo coordinación. Periodo por omisión: semana actual (lunes a domingo); atajos y rango libre de máx. 3 meses. Filtros: disciplina, días, asistencias/faltas, género. No cuentan anulados ni pendientes de aprobación. Cada gráfica permite cambiar el tipo (barras, líneas, pastel cuando aplica), ver tabla y descargar PNG con fondo claro. PDF con Ctrl+P. Gimnasio: entradas, alumnos distintos, tiempo promedio, sin salida, concurrencia por día y hora, top 3 alumnos. Paleta validada para daltonismo (ECharts 6.1) |
 | Catálogos (F3) | Motivos de "No hubo clase" y categorías de incidencia: el coordinador agrega o quita opciones, máximo 6 activas por catálogo |
 | Alumnos | Uno por matrícula aunque esté en varias disciplinas; un nombre existente no se sobrescribe al inscribir. El entrenador corrige nombre y género de sus alumnos; la matrícula y las bajas, solo el coordinador |
 | Autollenado en kiosco (F4) | Búsqueda por matrícula exacta al completar los dígitos; muestra "Nombre I." y solo con un turno abierto |
@@ -57,8 +58,8 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | F2b | `feature/importacion-solicitudes` | Importación desde Excel (`read-excel-file`, leído en el navegador), sugerencias de alta y reportes de baja con aprobación | Hecha |
 | F3 | `feature/captura-asistencia` | Recordatorio, pase de lista, incidencias, "No hubo clase", corrección en 24 h, catálogos | Hecha |
 | F4 | `feature/gimnasio-kiosco` | Turnos de gimnasio (abrir/cerrar), kiosco con entrada y salida, alta de alumnos nuevos, salida protegida con contraseña, app instalable | Hecha |
-| F5 | `feature/admin-datos` | Registros (sesiones, gimnasio, días sin clase), captura por coordinación, directorio de alumnos, anular/restaurar, salidas corregidas, historial con motivo | En revisión |
-| F6 | `feature/dashboard` | Indicadores, gráficas, filtros, descarga | Pendiente |
+| F5 | `feature/admin-datos` | Registros (sesiones, gimnasio, días sin clase), captura por coordinación, directorio de alumnos, anular/restaurar, salidas corregidas, historial con motivo | Hecha |
+| F6 | `feature/dashboards` | Dashboards de selecciones/talleres (con género) y de gimnasio (concurrencia, top 3), filtros, cambio de tipo de gráfica, PNG y PDF | En revisión |
 | F7 | `feature/respaldos` | Exportación a Excel, cron para evitar la pausa, inicio del piloto | Pendiente |
 
 ## Modelo de datos (borrador, se detalla en F1 y F2)

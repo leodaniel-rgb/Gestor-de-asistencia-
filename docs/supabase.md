@@ -53,7 +53,8 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 | `20261022000100_f2b_importacion_solicitudes.sql` | ☑ | ☑ |
 | `20261023000100_f3_asistencia.sql` | ☑ | ☑ |
 | `20261024000100_f4_gimnasio.sql` | ☑ | ☑ |
-| `20261025000100_f5_admin.sql` | ☐ | ☐ |
+| `20261025000100_f5_admin.sql` | ☑ | ☑ |
+| `20261026000100_f6_reportes.sql` | ☐ | ☐ |
 
 ## Permisos explícitos en cada tabla nueva
 
