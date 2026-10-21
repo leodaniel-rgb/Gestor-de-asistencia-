@@ -46,7 +46,7 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
                 Asistencia VIVE
               </span>
             </Link>
-            <nav className="flex items-center gap-1 text-[13px]">
+            <nav className="flex flex-wrap items-center gap-1 text-[13px]">
               <Link href="/coordinador/disciplinas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Disciplinas
               </Link>
@@ -58,6 +58,9 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
                 <Suspense>
                   <ContadorSolicitudes />
                 </Suspense>
+              </Link>
+              <Link href="/coordinador/catalogos" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
+                Catálogos
               </Link>
               <Link href="/coordinador/cuentas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Cuentas

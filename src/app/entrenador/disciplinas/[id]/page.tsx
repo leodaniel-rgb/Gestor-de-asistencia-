@@ -5,8 +5,9 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { AlumnoEditable, type AlumnoFila } from "@/components/alumno-editable";
 import { BotonConfirmar } from "@/components/boton-confirmar";
-import { Tarjeta } from "@/components/ui";
+import { Aviso, Tarjeta } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
+import { ahoraMx, describirFecha, ventanaCorreccion } from "@/lib/fechas";
 import { describirDias, formatearMomento, type TipoDisciplina } from "@/lib/catalogos";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { solicitarBaja } from "./actions";
@@ -32,14 +33,30 @@ const ESTILO_ESTADO = {
   rechazada: "text-danger",
 } as const;
 
-async function Lista({ params }: { params: Promise<{ id: string }> }) {
+type SesionReciente = {
+  id: string;
+  fecha: string;
+  hora_inicio: string;
+  registro_tardio: boolean;
+  creado_en: string;
+  asistencias: { estado: "asistio" | "falta" }[];
+};
+
+async function Lista({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requerirUsuario("entrenador");
   const id = z.uuid().safeParse((await params).id);
+  const avisos = await searchParams;
   if (!id.success) notFound();
 
   const supabase = await crearClienteServidor();
   // RLS: si la disciplina no es suya, no devuelve nada → 404.
-  const [disciplinaRes, inscripcionesRes, solicitudesRes] = await Promise.all([
+  const [disciplinaRes, inscripcionesRes, solicitudesRes, sesionesRes] = await Promise.all([
     supabase.from("disciplinas").select("id, nombre, tipo, dias_clase").eq("id", id.data).maybeSingle(),
     supabase
       .from("inscripciones")
@@ -54,6 +71,13 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
       .eq("disciplina_id", id.data)
       .order("creado_en", { ascending: false })
       .limit(20),
+    supabase
+      .from("sesiones")
+      .select("id, fecha, hora_inicio, registro_tardio, creado_en, asistencias(estado)")
+      .eq("disciplina_id", id.data)
+      .order("fecha", { ascending: false })
+      .order("hora_inicio", { ascending: false })
+      .limit(10),
   ]);
 
   const disciplina = disciplinaRes.data as
@@ -65,6 +89,9 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
   const bajasPendientes = new Set(
     solicitudes.filter((s) => s.tipo === "baja" && s.estado === "pendiente").map((s) => s.inscripcion_id),
   );
+
+  const sesiones = (sesionesRes.data ?? []) as unknown as SesionReciente[];
+  const { fecha: hoy } = ahoraMx();
 
   const inscripciones = ((inscripcionesRes.data ?? []) as unknown as { id: string; alumnos: AlumnoFila | null }[])
     .filter((i): i is { id: string; alumnos: AlumnoFila } => i.alumnos !== null)
@@ -87,6 +114,46 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
         </Tarjeta>
       ) : (
         <>
+          {avisos.registrada && <Aviso tono="exito">Asistencia guardada.</Aviso>}
+          {avisos.corregida && <Aviso tono="exito">Corrección guardada.</Aviso>}
+          <Link
+            href={`/entrenador/disciplinas/${disciplina.id}/asistencia`}
+            className="inline-flex h-12 w-full items-center justify-center rounded-control bg-accent px-4 text-[15px] font-medium text-on-accent hover:opacity-90 sm:w-fit"
+          >
+            Registrar asistencia
+          </Link>
+
+          {sesiones.length > 0 && (
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[15px] font-medium text-fg">Sesiones recientes</h2>
+              <ul className="divide-y divide-line rounded-card bg-surface px-4 shadow-[inset_0_0_0_1px_var(--line)]">
+                {sesiones.map((s) => {
+                  const asistieron = s.asistencias.filter((a) => a.estado === "asistio").length;
+                  const corregible = ventanaCorreccion(s.creado_en).abierta;
+                  return (
+                    <li key={s.id}>
+                      <Link
+                        href={`/entrenador/sesiones/${s.id}`}
+                        className="flex items-center justify-between gap-2 py-3 hover:opacity-80"
+                      >
+                        <span className="flex flex-col">
+                          <span className="text-sm text-fg">
+                            {describirFecha(s.fecha, hoy)}, {s.hora_inicio.slice(0, 5)}
+                            {s.registro_tardio && <span className="text-[13px] text-info"> · Registro tardío</span>}
+                          </span>
+                          <span className="text-[13px] text-fg-muted">
+                            {asistieron} de {s.asistencias.length} asistieron
+                          </span>
+                        </span>
+                        <span className="text-[13px] text-fg-muted">{corregible ? "Corregir →" : "Ver →"}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
           <SugerirAlumno disciplinaId={disciplina.id} />
 
           <section className="flex flex-col gap-2">
@@ -157,10 +224,13 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
   );
 }
 
-export default function PaginaListaEntrenador({ params }: PageProps<"/entrenador/disciplinas/[id]">) {
+export default function PaginaListaEntrenador({
+  params,
+  searchParams,
+}: PageProps<"/entrenador/disciplinas/[id]">) {
   return (
     <Suspense fallback={<p className="text-sm text-fg-muted">Cargando…</p>}>
-      <Lista params={params} />
+      <Lista params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
