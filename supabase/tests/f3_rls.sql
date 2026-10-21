@@ -43,27 +43,24 @@ create function pg_temp.como(uid uuid) returns void language sql as $$
   select set_config('request.jwt.claims', json_build_object('sub', uid, 'role', 'authenticated')::text, true);
 $$;
 
-create temp table ids (clave text primary key, id uuid);
-grant select, insert on ids to authenticated;
-
 -- Entrenador de fútbol --------------------------------------------------------
 select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
 set local role authenticated;
 
 -- 1. Registra una sesión completa (2 alumnos + 1 pendiente) con una incidencia
-insert into ids
-select 'sesion', public.registrar_sesion(
+-- El id de la sesión se guarda en una variable de la transacción (sin tablas temporales).
+select set_config('prueba.sesion', public.registrar_sesion(
   '00000000-0000-0000-0000-0000000000d1', privado.hoy_mx(), '16:00',
   '[{"alumno_id":"00000000-0000-0000-0000-0000000000a1","estado":"asistio"},
     {"alumno_id":"00000000-0000-0000-0000-0000000000a2","estado":"falta"},
     {"solicitud_id":"00000000-0000-0000-0000-0000000005a1","estado":"asistio"}]'::jsonb,
   jsonb_build_array(jsonb_build_object(
     'categoria_id', (select id from public.catalogo_opciones where tipo = 'categoria_incidencia' and nombre = 'Lesión'),
-    'descripcion', 'Torcedura leve')));
+    'descripcion', 'Torcedura leve')))::text, true);
 do $$ begin
-  assert (select count(*) from public.asistencias where sesion_id = (select id from ids where clave = 'sesion')) = 3,
+  assert (select count(*) from public.asistencias where sesion_id = current_setting('prueba.sesion')::uuid) = 3,
     'Prueba 1 falló: no se guardaron las 3 marcas';
-  assert not (select registro_tardio from public.sesiones where id = (select id from ids where clave = 'sesion')),
+  assert not (select registro_tardio from public.sesiones where id = current_setting('prueba.sesion')::uuid),
     'Prueba 1 falló: una sesión de hoy quedó como tardía';
 end $$;
 
@@ -104,27 +101,27 @@ end $$;
 
 -- 5. Corrige dentro de las 24 h
 do $$ declare n int; begin
-  perform public.corregir_sesion((select id from ids where clave = 'sesion'), '16:30',
+  perform public.corregir_sesion(current_setting('prueba.sesion')::uuid, '16:30',
     jsonb_build_array(jsonb_build_object(
-      'id', (select id from public.asistencias where sesion_id = (select id from ids where clave = 'sesion')
+      'id', (select id from public.asistencias where sesion_id = current_setting('prueba.sesion')::uuid
              and alumno_id = '00000000-0000-0000-0000-0000000000a2'),
       'estado', 'asistio')), '[]'::jsonb);
   select count(*) into n from public.asistencias
-  where sesion_id = (select id from ids where clave = 'sesion') and estado = 'asistio';
+  where sesion_id = current_setting('prueba.sesion')::uuid and estado = 'asistio';
   assert n = 3, 'Prueba 5 falló: la corrección no se aplicó';
-  assert (select count(*) from public.incidencias where sesion_id = (select id from ids where clave = 'sesion')) = 0,
+  assert (select count(*) from public.incidencias where sesion_id = current_setting('prueba.sesion')::uuid) = 0,
     'Prueba 5 falló: no se reemplazaron las incidencias';
 end $$;
 
 -- 6. No puede reasignar una marca a otro alumno ni tocar registro_tardio
 do $$ begin
   update public.asistencias set alumno_id = '00000000-0000-0000-0000-0000000000a3'
-  where sesion_id = (select id from ids where clave = 'sesion') and alumno_id = '00000000-0000-0000-0000-0000000000a1';
+  where sesion_id = current_setting('prueba.sesion')::uuid and alumno_id = '00000000-0000-0000-0000-0000000000a1';
   raise exception 'Prueba 6 falló: el entrenador reasignó una asistencia';
 exception when insufficient_privilege then null;
 end $$;
 do $$ begin
-  update public.sesiones set registro_tardio = true where id = (select id from ids where clave = 'sesion');
+  update public.sesiones set registro_tardio = true where id = current_setting('prueba.sesion')::uuid;
   raise exception 'Prueba 6 falló: el entrenador cambió registro_tardio';
 exception when insufficient_privilege then null;
 end $$;
@@ -132,7 +129,7 @@ end $$;
 -- 7. No inserta marcas de alumnos ajenos directamente
 do $$ begin
   insert into public.asistencias (sesion_id, alumno_id, estado)
-  values ((select id from ids where clave = 'sesion'), '00000000-0000-0000-0000-0000000000a3', 'asistio');
+  values (current_setting('prueba.sesion')::uuid, '00000000-0000-0000-0000-0000000000a3', 'asistio');
   raise exception 'Prueba 7 falló: se insertó la marca de un alumno ajeno';
 exception when insufficient_privilege then null;
 end $$;
@@ -174,11 +171,11 @@ reset role;
 
 -- 10. Pasadas 24 h ya no se corrige ------------------------------------------
 update public.sesiones set creado_en = now() - interval '25 hours'
-where id = (select id from ids where clave = 'sesion');
+where id = current_setting('prueba.sesion')::uuid;
 select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
 set local role authenticated;
 do $$ begin
-  perform public.corregir_sesion((select id from ids where clave = 'sesion'), '17:00', '[]'::jsonb);
+  perform public.corregir_sesion(current_setting('prueba.sesion')::uuid, '17:00', '[]'::jsonb);
   raise exception 'Prueba 10 falló: se corrigió después de 24 h';
 exception when insufficient_privilege then null;
 end $$;

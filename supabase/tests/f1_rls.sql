@@ -18,8 +18,7 @@ insert into auth.users (id, email) values
 -- Solo puede haber un coordinador: el de vive-dev (si existe) se degrada
 -- temporalmente dentro de esta transacción, que termina en rollback.
 update public.perfiles set rol = 'entrenador' where rol = 'coordinador';
-create temp table total_perfiles as select count(*) + 3 as n from public.perfiles;
-grant select on total_perfiles to authenticated;
+select set_config('prueba.total_perfiles', (select count(*) + 3 from public.perfiles)::text, true);
 
 insert into public.perfiles (id, correo, nombre, rol, debe_cambiar_password) values
   ('00000000-0000-0000-0000-0000000000c1', 'coord@rls-fixture.invalid', 'Coordinación', 'coordinador', false),
@@ -80,7 +79,7 @@ reset role;
 select pg_temp.como('00000000-0000-0000-0000-0000000000c1');
 set local role authenticated;
 do $$ begin
-  assert (select count(*) from public.perfiles) = (select n from total_perfiles), 'Prueba 7 falló: coordinador no ve todos los perfiles';
+  assert (select count(*) from public.perfiles) = current_setting('prueba.total_perfiles')::int, 'Prueba 7 falló: coordinador no ve todos los perfiles';
   assert (select count(*) from public.bitacora) >= 3, 'Prueba 7 falló: coordinador no ve la bitácora';
 end $$;
 
