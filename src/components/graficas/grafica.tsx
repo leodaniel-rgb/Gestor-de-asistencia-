@@ -268,7 +268,9 @@ export function Grafica(props: Props) {
       {vacio ? (
         <p className="py-10 text-center text-sm text-fg-muted">Sin datos en este periodo.</p>
       ) : verTabla ? (
-        <div className="max-h-96 overflow-auto">
+        // key distinto: React debe crear un elemento nuevo y no reutilizar el
+        // <div> donde ECharts dibujó (si lo reutiliza, falla al quitar nodos).
+        <div key="tabla" className="max-h-96 overflow-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[13px] text-fg-muted">
@@ -295,7 +297,7 @@ export function Grafica(props: Props) {
           </table>
         </div>
       ) : (
-        <div ref={ref} role="img" aria-label={`${titulo}. Usa "Ver tabla" para leer los valores.`} style={{ height: alto }} />
+        <div key="grafica" ref={ref} role="img" aria-label={`${titulo}. Usa "Ver tabla" para leer los valores.`} style={{ height: alto }} />
       )}
     </section>
   );

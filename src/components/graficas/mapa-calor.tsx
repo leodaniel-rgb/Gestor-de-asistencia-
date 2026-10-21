@@ -144,7 +144,8 @@ export function MapaCalor({ titulo, subtitulo, horas, celdas, maximo, nombreArch
       {vacio ? (
         <p className="py-10 text-center text-sm text-fg-muted">Sin entradas en este periodo.</p>
       ) : verTabla ? (
-        <div className="overflow-auto">
+        // key distinto: no reutilizar el <div> donde dibujó ECharts.
+        <div key="tabla" className="overflow-auto">
           <table className="text-sm">
             <thead>
               <tr className="text-[13px] text-fg-muted">
@@ -171,7 +172,7 @@ export function MapaCalor({ titulo, subtitulo, horas, celdas, maximo, nombreArch
           </table>
         </div>
       ) : (
-        <div ref={ref} role="img" aria-label={`${titulo}. Usa "Ver tabla" para leer los valores.`} style={{ height: 340 }} />
+        <div key="grafica" ref={ref} role="img" aria-label={`${titulo}. Usa "Ver tabla" para leer los valores.`} style={{ height: 340 }} />
       )}
     </section>
   );
