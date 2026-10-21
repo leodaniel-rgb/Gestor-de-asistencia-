@@ -70,3 +70,9 @@ const formatoMomento = new Intl.DateTimeFormat("es-MX", {
 export function formatearMomento(ts: string): string {
   return formatoMomento.format(new Date(ts));
 }
+
+const formatoHora = new Intl.DateTimeFormat("es-MX", { timeStyle: "short", timeZone: "America/Mexico_City" });
+/** Hora de un `timestamptz` en San Luis Potosí ("8:05 a.m."). */
+export function formatearHora(ts: string): string {
+  return formatoHora.format(new Date(ts));
+}

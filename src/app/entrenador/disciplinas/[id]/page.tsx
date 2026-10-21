@@ -8,7 +8,8 @@ import { BotonConfirmar } from "@/components/boton-confirmar";
 import { Aviso, Tarjeta } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { ahoraMx, describirFecha, ventanaCorreccion } from "@/lib/fechas";
-import { describirDias, formatearMomento, type TipoDisciplina } from "@/lib/catalogos";
+import { describirDias, formatearHora, formatearMomento, type TipoDisciplina } from "@/lib/catalogos";
+import { ETIQUETA_TURNO, type NombreTurno } from "@/lib/gimnasio";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { solicitarBaja } from "./actions";
 import { SugerirAlumno } from "./sugerir";
@@ -56,7 +57,7 @@ async function Lista({
 
   const supabase = await crearClienteServidor();
   // RLS: si la disciplina no es suya, no devuelve nada → 404.
-  const [disciplinaRes, inscripcionesRes, solicitudesRes, sesionesRes] = await Promise.all([
+  const [disciplinaRes, inscripcionesRes, solicitudesRes, sesionesRes, turnosRes] = await Promise.all([
     supabase.from("disciplinas").select("id, nombre, tipo, dias_clase").eq("id", id.data).maybeSingle(),
     supabase
       .from("inscripciones")
@@ -78,6 +79,12 @@ async function Lista({
       .order("fecha", { ascending: false })
       .order("hora_inicio", { ascending: false })
       .limit(10),
+    supabase
+      .from("turnos_gimnasio")
+      .select("id, fecha, nombre, abierto_en, cerrado_en, cierre_automatico, registros_gimnasio(salida)")
+      .eq("disciplina_id", id.data)
+      .order("abierto_en", { ascending: false })
+      .limit(10),
   ]);
 
   const disciplina = disciplinaRes.data as
@@ -91,6 +98,15 @@ async function Lista({
   );
 
   const sesiones = (sesionesRes.data ?? []) as unknown as SesionReciente[];
+  const turnos = (turnosRes.data ?? []) as unknown as {
+    id: string;
+    fecha: string;
+    nombre: NombreTurno | null;
+    abierto_en: string;
+    cerrado_en: string | null;
+    cierre_automatico: boolean;
+    registros_gimnasio: { salida: string | null }[];
+  }[];
   const { fecha: hoy } = ahoraMx();
 
   const inscripciones = ((inscripcionesRes.data ?? []) as unknown as { id: string; alumnos: AlumnoFila | null }[])
@@ -108,10 +124,35 @@ async function Lista({
       </div>
 
       {disciplina.tipo === "acceso_libre" ? (
-        <Tarjeta>
-          <p className="text-sm text-fg-body">Disciplina de acceso libre: no lleva lista.</p>
-          <p className="mt-1 text-[13px] text-fg-muted">El registro de entradas llegará con el modo kiosco.</p>
-        </Tarjeta>
+        <section className="flex flex-col gap-2">
+          <h2 className="text-[15px] font-medium text-fg">Turnos recientes</h2>
+          <p className="text-[13px] text-fg-muted">El gimnasio se abre y se cierra desde “Mis disciplinas”.</p>
+          {turnos.length === 0 ? (
+            <Tarjeta>
+              <p className="text-sm text-fg-muted">Aún no hay turnos registrados.</p>
+            </Tarjeta>
+          ) : (
+            <ul className="divide-y divide-line rounded-card bg-surface px-4 shadow-[inset_0_0_0_1px_var(--line)]">
+              {turnos.map((t) => {
+                const sinSalida = t.registros_gimnasio.filter((x) => !x.salida).length;
+                return (
+                  <li key={t.id} className="flex flex-col gap-0.5 py-3">
+                    <span className="text-sm text-fg">
+                      {describirFecha(t.fecha, hoy)}
+                      {t.nombre && ` · ${ETIQUETA_TURNO[t.nombre]}`} · {formatearHora(t.abierto_en)}
+                      {t.cerrado_en ? ` – ${formatearHora(t.cerrado_en)}` : " · abierto"}
+                    </span>
+                    <span className="text-[13px] text-fg-muted">
+                      {t.registros_gimnasio.length} entradas
+                      {t.cerrado_en && sinSalida > 0 && <span className="text-info"> · {sinSalida} sin salida</span>}
+                      {t.cierre_automatico && <span className="text-info"> · Cerrado automáticamente</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       ) : (
         <>
           {avisos.registrada && <Aviso tono="exito">Asistencia guardada.</Aviso>}
