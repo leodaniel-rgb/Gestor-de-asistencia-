@@ -66,3 +66,13 @@ export function ventanaCorreccion(creadoEn: string, ahora: number = Date.now()) 
   const vence = new Date(creadoEn).getTime() + VENTANA_CORRECCION_MS;
   return { vence: new Date(vence).toISOString(), abierta: ahora < vence };
 }
+
+export type Periodo = "semana" | "semana-pasada" | "mes" | "libre";
+
+/** Rango de un periodo predefinido (semanas de lunes a domingo). */
+export function rangoPeriodo(periodo: Exclude<Periodo, "libre">, hoy: string): { desde: string; hasta: string } {
+  const lunes = sumarDias(hoy, 1 - diaSemanaIso(hoy));
+  if (periodo === "semana") return { desde: lunes, hasta: sumarDias(lunes, 6) };
+  if (periodo === "semana-pasada") return { desde: sumarDias(lunes, -7), hasta: sumarDias(lunes, -1) };
+  return { desde: `${hoy.slice(0, 8)}01`, hasta: hoy };
+}

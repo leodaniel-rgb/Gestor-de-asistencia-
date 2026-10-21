@@ -27,3 +27,13 @@ describe("fechas", () => {
     expect(describirFecha("2026-10-16", "2026-10-19")).toBe("Viernes, 16 de octubre");
   });
 });
+
+describe("rangoPeriodo", () => {
+  it("semana de lunes a domingo, semana pasada y mes", async () => {
+    const { rangoPeriodo } = await import("./fechas");
+    expect(rangoPeriodo("semana", "2026-10-21")).toEqual({ desde: "2026-10-19", hasta: "2026-10-25" });
+    expect(rangoPeriodo("semana", "2026-10-25")).toEqual({ desde: "2026-10-19", hasta: "2026-10-25" });
+    expect(rangoPeriodo("semana-pasada", "2026-10-21")).toEqual({ desde: "2026-10-12", hasta: "2026-10-18" });
+    expect(rangoPeriodo("mes", "2026-10-21")).toEqual({ desde: "2026-10-01", hasta: "2026-10-21" });
+  });
+});
