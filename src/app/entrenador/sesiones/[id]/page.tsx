@@ -18,6 +18,7 @@ type Sesion = {
   fecha: string;
   hora_inicio: string;
   creado_en: string;
+  anulada: boolean;
   disciplinas: { nombre: string } | null;
   asistencias: {
     id: string;
@@ -38,7 +39,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     supabase
       .from("sesiones")
       .select(
-        "id, disciplina_id, fecha, hora_inicio, creado_en, disciplinas(nombre), " +
+        "id, disciplina_id, fecha, hora_inicio, creado_en, anulada, disciplinas(nombre), " +
           "asistencias(id, estado, alumnos(nombre, matricula), solicitudes(nombre, matricula, estado)), " +
           "incidencias(categoria_id, descripcion)",
       )
@@ -55,7 +56,8 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   if (!sesion) notFound();
 
   const { fecha: hoy } = ahoraMx();
-  const { vence, abierta: corregible } = ventanaCorreccion(sesion.creado_en);
+  const { vence, abierta } = ventanaCorreccion(sesion.creado_en);
+  const corregible = abierta && !sesion.anulada;
 
   const filas: FilaLista[] = sesion.asistencias
     .map((a) => {
@@ -80,9 +82,11 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           Sesión: {describirFecha(sesion.fecha, hoy)}, {sesion.hora_inicio.slice(0, 5)}
         </h1>
         <p className="text-[13px] text-fg-muted">
-          {corregible
-            ? `Puedes corregirla hasta el ${formatearMomento(vence)}.`
-            : "Pasaron 24 horas: solo la coordinación puede corregirla."}
+          {sesion.anulada
+            ? "La coordinación anuló esta sesión: no cuenta en los reportes."
+            : corregible
+              ? `Puedes corregirla hasta el ${formatearMomento(vence)}.`
+              : "Pasaron 24 horas: solo la coordinación puede corregirla."}
         </p>
       </div>
 

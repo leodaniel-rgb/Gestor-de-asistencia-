@@ -15,15 +15,13 @@ export type AlumnoFila = {
 const claseInput =
   "h-10 rounded-control border border-line bg-surface px-3 text-[15px] text-fg outline-none focus:border-fg-muted";
 
-/** Fila de alumno con edición en línea de nombre y género (y matrícula si `editarMatricula`). */
+/** Fila de alumno con edición en línea de nombre y género (entrenador). */
 export function AlumnoEditable({
   alumno,
-  editarMatricula = false,
   detalle,
   accionesExtra,
 }: {
   alumno: AlumnoFila;
-  editarMatricula?: boolean;
   detalle?: string;
   accionesExtra?: React.ReactNode;
 }) {
@@ -62,13 +60,7 @@ export function AlumnoEditable({
   return (
     <form action={accion} className="flex flex-col gap-3 py-3">
       <input type="hidden" name="id" value={alumno.id} />
-      <div className="grid gap-3 sm:grid-cols-3">
-        {editarMatricula && (
-          <label className="flex flex-col gap-1 text-[13px] text-fg-muted">
-            Matrícula
-            <input name="matricula" defaultValue={alumno.matricula} className={`${claseInput} font-mono`} />
-          </label>
-        )}
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-[13px] text-fg-muted">
           Nombre
           <input name="nombre" defaultValue={alumno.nombre} required className={claseInput} />
@@ -88,7 +80,6 @@ export function AlumnoEditable({
       {(estado.error || estado.errores) && (
         <Aviso>
           {estado.error ??
-            estado.errores?.matricula?.[0] ??
             estado.errores?.nombre?.[0] ??
             estado.errores?.genero?.[0]}
         </Aviso>

@@ -59,6 +59,12 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
                   <ContadorSolicitudes />
                 </Suspense>
               </Link>
+              <Link href="/coordinador/registros" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
+                Registros
+              </Link>
+              <Link href="/coordinador/alumnos" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
+                Alumnos
+              </Link>
               <Link href="/coordinador/catalogos" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Catálogos
               </Link>
