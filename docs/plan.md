@@ -55,7 +55,7 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | F2a | `feature/catalogos` | Disciplinas (con días habituales opcionales), asignación de entrenadores, alumnos e inscripciones | Hecha |
 | F2b | `feature/importacion-solicitudes` | Importación desde Excel (`read-excel-file`, leído en el navegador), sugerencias de alta y reportes de baja con aprobación | Hecha |
 | F3 | `feature/captura-asistencia` | Recordatorio, pase de lista, incidencias, "No hubo clase", corrección en 24 h, catálogos | Hecha |
-| F4 | `feature/gimnasio-kiosco` | Turnos de gimnasio (abrir/cerrar), kiosco con entrada y salida, alta de alumnos nuevos, salida protegida con contraseña, app instalable | En revisión |
+| F4 | `feature/gimnasio-kiosco` | Turnos de gimnasio (abrir/cerrar), kiosco con entrada y salida, alta de alumnos nuevos, salida protegida con contraseña, app instalable | Hecha |
 | F5 | `feature/admin-datos` | Tabla editable con bitácora | Pendiente |
 | F6 | `feature/dashboard` | Indicadores, gráficas, filtros, descarga | Pendiente |
 | F7 | `feature/respaldos` | Exportación a Excel, cron para evitar la pausa, inicio del piloto | Pendiente |
