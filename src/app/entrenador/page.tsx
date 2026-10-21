@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requerirUsuario } from "@/lib/auth/dal";
-import { describirDias, type TipoDisciplina } from "@/lib/catalogos";
+import { describirDias, formatearHora, type TipoDisciplina } from "@/lib/catalogos";
 import { ahoraMx, diaSemanaIso } from "@/lib/fechas";
+import { ETIQUETA_TURNO, sugerirTurno, type NombreTurno } from "@/lib/gimnasio";
+import { AbrirGimnasio, TurnoAbierto } from "./gimnasio-tarjeta";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { Recordatorio } from "./recordatorio";
 
@@ -19,12 +21,12 @@ type Fila = {
 
 async function MisDisciplinas() {
   const usuario = await requerirUsuario("entrenador");
-  const hoy = ahoraMx().fecha;
+  const { fecha: hoy, hora } = ahoraMx();
   const diaHoy = diaSemanaIso(hoy);
 
   const supabase = await crearClienteServidor();
   // RLS limita todo a las disciplinas asignadas a este entrenador.
-  const [disciplinasRes, sesionesRes, sinClaseRes, motivosRes] = await Promise.all([
+  const [disciplinasRes, sesionesRes, sinClaseRes, motivosRes, turnosRes] = await Promise.all([
     supabase
       .from("disciplinas")
       .select("id, nombre, tipo, dias_clase, inscripciones(count)")
@@ -39,6 +41,10 @@ async function MisDisciplinas() {
       .eq("tipo", "motivo_sin_clase")
       .eq("activa", true)
       .order("creado_en"),
+    supabase
+      .from("turnos_gimnasio")
+      .select("id, disciplina_id, nombre, abierto_en, registros_gimnasio(salida)")
+      .is("cerrado_en", null),
   ]);
 
   const filas = (disciplinasRes.data ?? []) as unknown as Fila[];
@@ -52,6 +58,15 @@ async function MisDisciplinas() {
     ),
   );
   const motivos = motivosRes.data ?? [];
+  const turnosAbiertos = new Map(
+    ((turnosRes.data ?? []) as unknown as {
+      id: string;
+      disciplina_id: string;
+      nombre: NombreTurno | null;
+      abierto_en: string;
+      registros_gimnasio: { salida: string | null }[];
+    }[]).map((t) => [t.disciplina_id, t]),
+  );
 
   // Primero las que hoy son día habitual y aún no tienen respuesta.
   const pendienteHoy = (d: Fila) =>
@@ -84,6 +99,23 @@ async function MisDisciplinas() {
                     {describirDias(d.dias_clase)}
                   </span>
                 </Link>
+
+                {d.tipo === "acceso_libre" &&
+                  (() => {
+                    const turno = turnosAbiertos.get(d.id);
+                    if (!turno) return <AbrirGimnasio disciplinaId={d.id} sugerido={sugerirTurno(hora)} />;
+                    const dentro = turno.registros_gimnasio.filter((x) => !x.salida).length;
+                    return (
+                      <>
+                        <p className="text-sm text-success">
+                          ● Turno abierto{turno.nombre ? ` (${ETIQUETA_TURNO[turno.nombre]})` : ""} desde{" "}
+                          {formatearHora(turno.abierto_en)} · {turno.registros_gimnasio.length}{" "}
+                          entradas · {dentro} dentro
+                        </p>
+                        <TurnoAbierto turnoId={turno.id} />
+                      </>
+                    );
+                  })()}
 
                 {d.tipo === "lista" &&
                   (registradas > 0 ? (

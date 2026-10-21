@@ -51,7 +51,8 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 | `20261020000100_f1_grants_service_role.sql` | ☑ | ☑ |
 | `20261021000100_f2a_catalogos.sql` | ☑ | ☑ |
 | `20261022000100_f2b_importacion_solicitudes.sql` | ☑ | ☑ |
-| `20261023000100_f3_asistencia.sql` | ☐ | ☐ |
+| `20261023000100_f3_asistencia.sql` | ☑ | ☑ |
+| `20261024000100_f4_gimnasio.sql` | ☐ | ☐ |
 
 ## Permisos explícitos en cada tabla nueva
 
