@@ -37,3 +37,12 @@ describe("rangoPeriodo", () => {
     expect(rangoPeriodo("mes", "2026-10-21")).toEqual({ desde: "2026-10-01", hasta: "2026-10-21" });
   });
 });
+
+describe("diasDesde", () => {
+  it("cuenta días completos", async () => {
+    const { diasDesde } = await import("./fechas");
+    const ahora = new Date("2026-10-21T12:00:00Z").getTime();
+    expect(diasDesde("2026-10-21T11:00:00Z", ahora)).toBe(0);
+    expect(diasDesde("2026-10-06T12:00:00Z", ahora)).toBe(15);
+  });
+});

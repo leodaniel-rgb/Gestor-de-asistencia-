@@ -376,6 +376,15 @@ async function DashboardGimnasio({ f }: { f: Filtros }) {
   );
 }
 
+/** Los mismos filtros, en la URL del Excel. */
+function consultaExcel(f: Filtros): string {
+  const q = new URLSearchParams({ vista: f.vista, periodo: f.periodo, desde: f.desde, hasta: f.hasta });
+  if (f.disciplina) q.set("disciplina", f.disciplina);
+  for (const d of f.dias ?? []) q.append("dias", String(d));
+  if (f.corregidas) q.set("corregidas", "1");
+  return q.toString();
+}
+
 // ---------------------------------------------------------------------------
 
 async function Contenido({ searchParams }: { searchParams: Promise<Params> }) {
@@ -413,6 +422,18 @@ async function Contenido({ searchParams }: { searchParams: Promise<Params> }) {
         </nav>
       </div>
       <BarraFiltros f={f} disciplinas={disciplinas ?? []} />
+      <div className="flex flex-wrap items-center gap-3 print:hidden">
+        <a
+          href={`/coordinador/reportes/excel?${consultaExcel(f)}`}
+          className="inline-flex h-10 items-center rounded-control border border-line px-4 text-sm text-fg-body hover:bg-elevated"
+        >
+          Descargar Excel
+        </a>
+        <span className="text-xs text-fg-faint">
+          Datos editables con los filtros actuales{f.vista === "listas" ? ", incluida una hoja por alumno" : ""}. Contiene
+          datos personales: guárdalo solo en el almacenamiento institucional.
+        </span>
+      </div>
       {f.error && <Aviso>{f.error}</Aviso>}
       {f.vista === "gimnasio" ? <DashboardGimnasio f={f} /> : <DashboardListas f={f} />}
       <p className="text-xs text-fg-faint print:hidden">
