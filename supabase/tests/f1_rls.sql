@@ -9,16 +9,22 @@ begin;
 
 -- Fixtures (como postgres, sin RLS) -------------------------------------------
 insert into auth.users (id, email) values
-  ('00000000-0000-0000-0000-0000000000c1', 'coord@prueba.test'),
-  ('00000000-0000-0000-0000-0000000000e1', 'entrenador1@prueba.test'),
-  ('00000000-0000-0000-0000-0000000000e2', 'entrenador2@prueba.test'),
-  ('00000000-0000-0000-0000-0000000000e3', 'nuevo@prueba.test'),
-  ('00000000-0000-0000-0000-0000000000e4', 'otro@prueba.test');
+  ('00000000-0000-0000-0000-0000000000c1', 'coord@rls-fixture.invalid'),
+  ('00000000-0000-0000-0000-0000000000e1', 'entrenador1@rls-fixture.invalid'),
+  ('00000000-0000-0000-0000-0000000000e2', 'entrenador2@rls-fixture.invalid'),
+  ('00000000-0000-0000-0000-0000000000e3', 'nuevo@rls-fixture.invalid'),
+  ('00000000-0000-0000-0000-0000000000e4', 'otro@rls-fixture.invalid');
+
+-- Solo puede haber un coordinador: el de vive-dev (si existe) se degrada
+-- temporalmente dentro de esta transacción, que termina en rollback.
+update public.perfiles set rol = 'entrenador' where rol = 'coordinador';
+create temp table total_perfiles as select count(*) + 3 as n from public.perfiles;
+grant select on total_perfiles to authenticated;
 
 insert into public.perfiles (id, correo, nombre, rol, debe_cambiar_password) values
-  ('00000000-0000-0000-0000-0000000000c1', 'coord@prueba.test', 'Coordinación', 'coordinador', false),
-  ('00000000-0000-0000-0000-0000000000e1', 'entrenador1@prueba.test', 'Entrenador Uno', 'entrenador', false),
-  ('00000000-0000-0000-0000-0000000000e2', 'entrenador2@prueba.test', 'Entrenador Dos', 'entrenador', true);
+  ('00000000-0000-0000-0000-0000000000c1', 'coord@rls-fixture.invalid', 'Coordinación', 'coordinador', false),
+  ('00000000-0000-0000-0000-0000000000e1', 'entrenador1@rls-fixture.invalid', 'Entrenador Uno', 'entrenador', false),
+  ('00000000-0000-0000-0000-0000000000e2', 'entrenador2@rls-fixture.invalid', 'Entrenador Dos', 'entrenador', true);
 
 -- Helper: actuar como un usuario autenticado
 create function pg_temp.como(uid uuid) returns void language sql as $$
@@ -49,7 +55,7 @@ end $$;
 -- 4. Entrenador no puede crear perfiles ---------------------------------------
 do $$ begin
   insert into public.perfiles (id, correo, nombre, creado_por)
-  values ('00000000-0000-0000-0000-0000000000e3', 'nuevo@prueba.test', 'Nuevo', '00000000-0000-0000-0000-0000000000e1');
+  values ('00000000-0000-0000-0000-0000000000e3', 'nuevo@rls-fixture.invalid', 'Nuevo', '00000000-0000-0000-0000-0000000000e1');
   raise exception 'Prueba 4 falló: entrenador creó un perfil';
 exception when insufficient_privilege then null;
 end $$;
@@ -74,13 +80,13 @@ reset role;
 select pg_temp.como('00000000-0000-0000-0000-0000000000c1');
 set local role authenticated;
 do $$ begin
-  assert (select count(*) from public.perfiles) = 3, 'Prueba 7 falló: coordinador no ve todos los perfiles';
+  assert (select count(*) from public.perfiles) = (select n from total_perfiles), 'Prueba 7 falló: coordinador no ve todos los perfiles';
   assert (select count(*) from public.bitacora) >= 3, 'Prueba 7 falló: coordinador no ve la bitácora';
 end $$;
 
 -- 8. Coordinador crea un entrenador y queda en bitácora con su id -------------
 insert into public.perfiles (id, correo, nombre, creado_por)
-values ('00000000-0000-0000-0000-0000000000e3', 'nuevo@prueba.test', 'Nuevo', '00000000-0000-0000-0000-0000000000c1');
+values ('00000000-0000-0000-0000-0000000000e3', 'nuevo@rls-fixture.invalid', 'Nuevo', '00000000-0000-0000-0000-0000000000c1');
 do $$ begin
   assert exists (
     select 1 from public.bitacora
@@ -92,7 +98,7 @@ end $$;
 -- 9. Coordinador no puede crear otro coordinador ------------------------------
 do $$ begin
   insert into public.perfiles (id, correo, nombre, rol, creado_por)
-  values ('00000000-0000-0000-0000-0000000000e4', 'otro@prueba.test', 'Otro', 'coordinador', '00000000-0000-0000-0000-0000000000c1');
+  values ('00000000-0000-0000-0000-0000000000e4', 'otro@rls-fixture.invalid', 'Otro', 'coordinador', '00000000-0000-0000-0000-0000000000c1');
   raise exception 'Prueba 9 falló: se creó un segundo coordinador';
 exception when insufficient_privilege or unique_violation then null;
 end $$;

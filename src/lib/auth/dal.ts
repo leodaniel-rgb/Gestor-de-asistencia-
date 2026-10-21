@@ -45,7 +45,7 @@ export const obtenerUsuario = cache(async (): Promise<Usuario | null> => {
 /** Ruta de inicio según el estado y rol del usuario. */
 export function rutaInicio(usuario: Usuario): string {
   if (usuario.debeCambiarPassword) return "/cambiar-contrasena";
-  return usuario.rol === "coordinador" ? "/coordinador/cuentas" : "/entrenador";
+  return usuario.rol === "coordinador" ? "/coordinador/disciplinas" : "/entrenador";
 }
 
 /**

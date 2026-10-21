@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -26,7 +27,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
-    "typescript": "^6"
+    "typescript": "^6",
+    "vitest": "^5.0.5"
   },
   "engines": {
     "node": "24.x"
