@@ -107,9 +107,17 @@ async function Detalle({ params }: { params: Promise<{ id: string }> }) {
 
       {disciplina.tipo === "lista" ? (
         <section className="flex flex-col gap-4">
-          <h2 className="text-xl font-normal tracking-[-0.012em] text-fg">
-            Lista de alumnos <span className="text-fg-muted">({inscripciones.length})</span>
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-xl font-normal tracking-[-0.012em] text-fg">
+              Lista de alumnos <span className="text-fg-muted">({inscripciones.length})</span>
+            </h2>
+            <Link
+              href={`/coordinador/disciplinas/${disciplina.id}/importar`}
+              className="inline-flex h-9 items-center rounded-control border border-line px-3 text-[13px] text-fg-body hover:bg-elevated"
+            >
+              Importar desde Excel
+            </Link>
+          </div>
           <Tarjeta>
             <FormularioInscribir disciplinaId={disciplina.id} />
           </Tarjeta>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { cerrarSesion } from "@/lib/auth/acciones";
+import { crearClienteServidor } from "@/lib/supabase/server";
 
 async function UsuarioActual() {
   const usuario = await requerirUsuario("coordinador");
@@ -15,6 +16,21 @@ async function UsuarioActual() {
         </button>
       </form>
     </div>
+  );
+}
+
+async function ContadorSolicitudes() {
+  await requerirUsuario("coordinador");
+  const supabase = await crearClienteServidor();
+  const { count } = await supabase
+    .from("solicitudes")
+    .select("id", { count: "exact", head: true })
+    .eq("estado", "pendiente");
+  if (!count) return null;
+  return (
+    <span className="rounded-full bg-accent px-1.5 text-[11px] font-medium text-on-accent" aria-label={`${count} pendientes`}>
+      {count}
+    </span>
   );
 }
 
@@ -33,6 +49,15 @@ export default function LayoutCoordinador({ children }: LayoutProps<"/coordinado
             <nav className="flex items-center gap-1 text-[13px]">
               <Link href="/coordinador/disciplinas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Disciplinas
+              </Link>
+              <Link
+                href="/coordinador/solicitudes"
+                className="flex items-center gap-1.5 rounded-control px-3 py-2 text-fg-body hover:bg-elevated"
+              >
+                Solicitudes
+                <Suspense>
+                  <ContadorSolicitudes />
+                </Suspense>
               </Link>
               <Link href="/coordinador/cuentas" className="rounded-control px-3 py-2 text-fg-body hover:bg-elevated">
                 Cuentas

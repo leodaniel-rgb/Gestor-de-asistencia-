@@ -4,12 +4,33 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { AlumnoEditable, type AlumnoFila } from "@/components/alumno-editable";
+import { BotonConfirmar } from "@/components/boton-confirmar";
 import { Tarjeta } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
-import { describirDias, type TipoDisciplina } from "@/lib/catalogos";
+import { describirDias, formatearMomento, type TipoDisciplina } from "@/lib/catalogos";
 import { crearClienteServidor } from "@/lib/supabase/server";
+import { solicitarBaja } from "./actions";
+import { SugerirAlumno } from "./sugerir";
 
 export const metadata: Metadata = { title: "Lista de alumnos" };
+
+type Solicitud = {
+  id: string;
+  tipo: "alta" | "baja";
+  estado: "pendiente" | "aprobada" | "rechazada";
+  matricula: string | null;
+  nombre: string | null;
+  inscripcion_id: string | null;
+  motivo_rechazo: string | null;
+  creado_en: string;
+  inscripciones: { alumnos: { nombre: string } | null } | null;
+};
+
+const ESTILO_ESTADO = {
+  pendiente: "text-info",
+  aprobada: "text-success",
+  rechazada: "text-danger",
+} as const;
 
 async function Lista({ params }: { params: Promise<{ id: string }> }) {
   await requerirUsuario("entrenador");
@@ -18,13 +39,21 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
 
   const supabase = await crearClienteServidor();
   // RLS: si la disciplina no es suya, no devuelve nada → 404.
-  const [disciplinaRes, inscripcionesRes] = await Promise.all([
+  const [disciplinaRes, inscripcionesRes, solicitudesRes] = await Promise.all([
     supabase.from("disciplinas").select("id, nombre, tipo, dias_clase").eq("id", id.data).maybeSingle(),
     supabase
       .from("inscripciones")
       .select("id, alumnos(id, matricula, nombre, genero)")
       .eq("disciplina_id", id.data)
       .is("fecha_baja", null),
+    supabase
+      .from("solicitudes")
+      .select(
+        "id, tipo, estado, matricula, nombre, inscripcion_id, motivo_rechazo, creado_en, inscripciones(alumnos(nombre))",
+      )
+      .eq("disciplina_id", id.data)
+      .order("creado_en", { ascending: false })
+      .limit(20),
   ]);
 
   const disciplina = disciplinaRes.data as
@@ -32,10 +61,14 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
     | null;
   if (!disciplina) notFound();
 
-  const alumnos = ((inscripcionesRes.data ?? []) as unknown as { alumnos: AlumnoFila | null }[])
-    .map((i) => i.alumnos)
-    .filter((a): a is AlumnoFila => a !== null)
-    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  const solicitudes = (solicitudesRes.data ?? []) as unknown as Solicitud[];
+  const bajasPendientes = new Set(
+    solicitudes.filter((s) => s.tipo === "baja" && s.estado === "pendiente").map((s) => s.inscripcion_id),
+  );
+
+  const inscripciones = ((inscripcionesRes.data ?? []) as unknown as { id: string; alumnos: AlumnoFila | null }[])
+    .filter((i): i is { id: string; alumnos: AlumnoFila } => i.alumnos !== null)
+    .sort((a, b) => a.alumnos.nombre.localeCompare(b.alumnos.nombre, "es"));
 
   return (
     <>
@@ -52,26 +85,73 @@ async function Lista({ params }: { params: Promise<{ id: string }> }) {
           <p className="text-sm text-fg-body">Disciplina de acceso libre: no lleva lista.</p>
           <p className="mt-1 text-[13px] text-fg-muted">El registro de entradas llegará con el modo kiosco.</p>
         </Tarjeta>
-      ) : alumnos.length === 0 ? (
-        <p className="text-sm text-fg-muted">
-          Aún no hay alumnos en la lista. La coordinación VIVE carga la lista inicial.
-        </p>
       ) : (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-[15px] font-medium text-fg">
-            Lista de alumnos <span className="text-fg-muted">({alumnos.length})</span>
-          </h2>
-          <p className="text-[13px] text-fg-muted">
-            Puedes corregir nombre y género. Para cambiar una matrícula o dar de baja, avisa a la coordinación.
-          </p>
-          <ul className="divide-y divide-line rounded-card bg-surface px-4 shadow-[inset_0_0_0_1px_var(--line)]">
-            {alumnos.map((a) => (
-              <li key={a.id}>
-                <AlumnoEditable alumno={a} />
-              </li>
-            ))}
-          </ul>
-        </section>
+        <>
+          <SugerirAlumno disciplinaId={disciplina.id} />
+
+          <section className="flex flex-col gap-2">
+            <h2 className="text-[15px] font-medium text-fg">
+              Lista de alumnos <span className="text-fg-muted">({inscripciones.length})</span>
+            </h2>
+            {inscripciones.length === 0 ? (
+              <p className="text-sm text-fg-muted">
+                Aún no hay alumnos en la lista. La coordinación VIVE carga la lista inicial.
+              </p>
+            ) : (
+              <>
+                <p className="text-[13px] text-fg-muted">
+                  Puedes corregir nombre y género. Si un alumno ya no asiste, repórtalo y la coordinación decidirá.
+                </p>
+                <ul className="divide-y divide-line rounded-card bg-surface px-4 shadow-[inset_0_0_0_1px_var(--line)]">
+                  {inscripciones.map((i) => (
+                    <li key={i.id}>
+                      <AlumnoEditable
+                        alumno={i.alumnos}
+                        accionesExtra={
+                          bajasPendientes.has(i.id) ? (
+                            <span className="self-center text-[13px] text-info">Baja solicitada</span>
+                          ) : (
+                            <BotonConfirmar
+                              accion={solicitarBaja}
+                              campos={{ disciplina_id: disciplina.id, inscripcion_id: i.id }}
+                              texto="Ya no asiste"
+                              textoConfirmar="Reportar baja"
+                            />
+                          )
+                        }
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
+
+          {solicitudes.length > 0 && (
+            <section className="flex flex-col gap-2">
+              <h2 className="text-[15px] font-medium text-fg">Solicitudes recientes</h2>
+              <ul className="divide-y divide-line rounded-card bg-surface px-4 shadow-[inset_0_0_0_1px_var(--line)]">
+                {solicitudes.map((s) => (
+                  <li key={s.id} className="flex flex-col gap-0.5 py-3">
+                    <span className="text-sm text-fg">
+                      {s.tipo === "alta"
+                        ? `Alta: ${s.nombre} (${s.matricula})`
+                        : `Baja: ${s.inscripciones?.alumnos?.nombre ?? "alumno"}`}
+                    </span>
+                    <span className="text-[13px] text-fg-muted">
+                      <span className={ESTILO_ESTADO[s.estado]}>
+                        {s.estado.charAt(0).toUpperCase() + s.estado.slice(1)}
+                      </span>
+                      {" · "}
+                      {formatearMomento(s.creado_en)}
+                      {s.motivo_rechazo && ` · Motivo: ${s.motivo_rechazo}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       )}
     </>
   );

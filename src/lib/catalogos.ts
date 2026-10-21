@@ -60,3 +60,13 @@ const formatoFecha = new Intl.DateTimeFormat("es-MX", {
 export function formatearFecha(fecha: string): string {
   return formatoFecha.format(new Date(`${fecha}T00:00:00Z`));
 }
+
+const formatoMomento = new Intl.DateTimeFormat("es-MX", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "America/Mexico_City",
+});
+/** Formatea un `timestamptz` en la hora de San Luis Potosí. */
+export function formatearMomento(ts: string): string {
+  return formatoMomento.format(new Date(ts));
+}
