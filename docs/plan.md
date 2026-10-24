@@ -1,6 +1,6 @@
 # Plan del proyecto
 
-Última actualización: 2026-10-19
+Última actualización: 2026-10-24
 
 ## Alcance
 
@@ -42,10 +42,10 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | Correcciones del coordinador | Sobre el registro real, con **bitácora** automática. |
 | Estados de asistencia | `asistencia` o `falta`. No existe falta justificada. |
 | Incidencias | Texto libre por sesión |
-| Género | `femenino`, `masculino`, `no binario`. Solo en selecciones y talleres, no en gimnasio. |
+| Género | `femenino`, `masculino`, `no binario` o sin asignar. Solo en selecciones y talleres, no en gimnasio. |
 | Gimnasio | Modo kiosco: el entrenador abre el turno y cada alumno registra su entrada; al salir vuelve a capturar su matrícula. Si al cerrar el turno alguien no registró salida, queda marcado **"sin salida"**: no se inventa una hora. |
 | Dashboards | Uno para selecciones y talleres (con género) y otro para gimnasio (sin género). Filtros: semana, día, disciplina, asistencia o falta, género. Descarga PNG y elección del tipo de gráfica. |
-| Respaldos | El coordinador exporta a Excel cada semana y lo guarda en el almacenamiento institucional. Un cron diario de Vercel evita que Supabase se pause (el plan Free pausa tras 7 días sin actividad). |
+| Respaldos | El coordinador descarga el respaldo en Excel al menos cada 15 días (el portal avisa) y lo guarda en el almacenamiento institucional. Un cron diario de Vercel evita que Supabase se pause (el plan Free pausa tras 7 días sin actividad). |
 | Aviso de privacidad | Cubierto por el aviso de Tecmilenio, que se acepta al usar instalaciones y servicios |
 | Repositorio | Público, con protección de `main`, secret scanning y push protection |
 
@@ -61,7 +61,7 @@ Volumen estimado: unos 200 registros por semana. Hay internet en todas las insta
 | F4 | `feature/gimnasio-kiosco` | Turnos de gimnasio (abrir/cerrar), kiosco con entrada y salida, alta de alumnos nuevos, salida protegida con contraseña, app instalable | Hecha |
 | F5 | `feature/admin-datos` | Registros (sesiones, gimnasio, días sin clase), captura por coordinación, directorio de alumnos, anular/restaurar, salidas corregidas, historial con motivo | Hecha |
 | F6 | `feature/dashboards` | Dashboards de selecciones/talleres (con género) y de gimnasio (concurrencia, top 3), filtros, cambio de tipo de gráfica, PNG y PDF | Hecha |
-| F7 | `feature/exportacion-respaldos` | Excel del reporte (con hoja por alumno), respaldo completo con registro en bitácora y aviso cada 15 días, cron diario contra la pausa de Supabase, guía de arranque del piloto | En revisión |
+| F7 | `feature/exportacion-respaldos` | Excel del reporte (con hoja por alumno), respaldo completo con registro en bitácora y aviso cada 15 días, cron diario contra la pausa de Supabase, guía de arranque del piloto | Hecha |
 
 ## Modelo de datos (borrador, se detalla en F1 y F2)
 
