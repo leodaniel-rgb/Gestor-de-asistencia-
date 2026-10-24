@@ -33,6 +33,7 @@ Comprobaciones (las mismas que corre la CI en cada PR):
 ```bash
 pnpm lint
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 
@@ -48,5 +49,5 @@ pnpm build
 
 ## Licencia
 
-El código está bajo licencia [MIT](LICENSE).
-**Los logotipos de la Universidad Tecmilenio** (`public/brand/`, `src/app/icon.png`, `src/app/apple-icon.png` y `src/app/favicon.ico`) son marcas de la universidad. Se usan con su autorización para este proyecto y **no** quedan cubiertos por la licencia MIT.
+**Todos los derechos reservados.** Que el repositorio sea público no concede permiso para usar, copiar, modificar ni distribuir su contenido sin autorización por escrito. Consulta los términos en [LICENSE](LICENSE).
+**Los logotipos de la Universidad Tecmilenio** (`public/brand/`, `src/app/icon.png`, `src/app/apple-icon.png` y `src/app/favicon.ico`) son marcas de la universidad y se usan con su autorización para este proyecto.

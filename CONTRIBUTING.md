@@ -6,7 +6,8 @@
 2. **Una rama por funcionalidad**, creada desde `main` actualizado:
    - `feature/<nombre>` — funcionalidad nueva
    - `fix/<nombre>` — corrección
-   - `chore/<nombre>` — configuración, dependencias, documentación
+   - `chore/<nombre>` — configuración y dependencias
+   - `docs/<nombre>` — documentación
 3. A `main` solo se llega por **Pull Request** con la CI en verde. No hay commits directos.
 4. Los mensajes de commit siguen [Conventional Commits](https://www.conventionalcommits.org/es/v1.0.0/): `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`.
 5. Después del merge, la rama se borra.
@@ -26,7 +27,7 @@ git push -u origin feature/mi-funcionalidad
 
 ## Antes de abrir un PR
 
-- [ ] `pnpm lint`, `pnpm typecheck` y `pnpm build` pasan.
+- [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` y `pnpm build` pasan.
 - [ ] No hay secretos, `.env*` (salvo `.env.example`) ni datos reales de alumnos.
 - [ ] Toda tabla nueva tiene RLS activada y políticas probadas.
 - [ ] Los cambios a datos de asistencia quedan registrados en la bitácora.
