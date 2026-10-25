@@ -113,6 +113,7 @@ Si cambias una regla o decisión, actualiza este archivo **y** `docs/plan.md` en
   - Límite de 30 búsquedas por minuto.
   - Salir del kiosco pide la contraseña del entrenador.
   - El turno olvidado se cierra automáticamente.
+  - Si alguien no marcó su salida en un turno anterior del mismo día (≤ 3 h), el kiosco le recuerda marcarla; cuenta para el tiempo promedio.
 - **Género:** femenino, masculino, no binario o sin asignar. No se captura en el gimnasio.
 - **Dashboards** solo para el coordinador. PNG con fondo claro, Excel editable, reporte general en una sola imagen (sin nombres ni matrículas), aviso de respaldo cada 15 días.
 - **Diseño:**

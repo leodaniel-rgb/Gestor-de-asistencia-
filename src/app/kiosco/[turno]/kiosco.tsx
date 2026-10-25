@@ -9,7 +9,8 @@ import { buscarAlumno, registrarMovimiento, salirDelKiosco, type EstadoSalida } 
 type Pantalla =
   | { paso: "teclado" }
   | { paso: "confirmarMatricula"; matricula: string }
-  | { paso: "confirmarAccion"; matricula: string; accion: "entrada" | "salida"; nombreCorto: string }
+  // salida_anterior: entrada sin salida de un turno anterior del mismo día (≤ 3 h).
+  | { paso: "confirmarAccion"; matricula: string; accion: "entrada" | "salida" | "salida_anterior"; nombreCorto: string }
   | { paso: "nuevo"; matricula: string }
   | { paso: "listo"; mensaje: string }
   | { paso: "error"; mensaje: string }
@@ -67,7 +68,7 @@ export function Kiosco({
       iniciar(async () => {
         const r = await buscarAlumno(turnoId, matricula);
         if (r.tipo === "nuevo") setPantalla({ paso: "nuevo", matricula });
-        else if (r.tipo === "entrada" || r.tipo === "salida")
+        else if (r.tipo === "entrada" || r.tipo === "salida" || r.tipo === "salida_anterior")
           setPantalla({ paso: "confirmarAccion", matricula, accion: r.tipo, nombreCorto: r.nombreCorto });
         else if (r.tipo === "cerrado") setPantalla({ paso: "cerrado" });
         else if (r.tipo === "error") setPantalla({ paso: "error", mensaje: r.mensaje });
@@ -110,7 +111,7 @@ export function Kiosco({
     return () => window.removeEventListener("keydown", alPresionar);
   }, [teclear, saliendo, pantalla.paso]);
 
-  function registrar(matricula: string, accion: "entrada" | "salida", nombreNuevo?: string) {
+  function registrar(matricula: string, accion: "entrada" | "salida" | "salida_anterior", nombreNuevo?: string) {
     iniciar(async () => {
       const r = await registrarMovimiento(turnoId, matricula, accion, nombreNuevo);
       if (r.tipo === "listo") {
@@ -232,9 +233,21 @@ export function Kiosco({
             >
               {pendiente ? "Registrando…" : pantalla.accion === "entrada" ? "Sí, registrar entrada" : "Sí, registrar salida"}
             </button>
-            <button type="button" className={claseBotonSecundario} onClick={reiniciar}>
-              {pantalla.accion === "entrada" ? "No soy yo" : "No"}
-            </button>
+            {pantalla.accion === "salida_anterior" ? (
+              // No salió en el turno anterior: puede que en realidad esté volviendo a entrar.
+              <button
+                type="button"
+                className={claseBotonSecundario}
+                disabled={pendiente}
+                onClick={() => registrar(pantalla.matricula, "entrada")}
+              >
+                No, estoy entrando
+              </button>
+            ) : (
+              <button type="button" className={claseBotonSecundario} onClick={reiniciar}>
+                {pantalla.accion === "entrada" ? "No soy yo" : "No"}
+              </button>
+            )}
           </div>
         )}
 

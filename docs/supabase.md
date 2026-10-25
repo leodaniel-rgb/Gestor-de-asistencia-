@@ -58,6 +58,7 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 | `20261027000100_f7_respaldos.sql` | ☑ | ☑ |
 | `20261028000100_fix_historial_turnos.sql` (prueba: `fix_historial_turnos.sql`) | ☑ | ☑ |
 | `20261029000100_f8_reporte_general.sql` (prueba: `f8_reporte_general.sql`) | ☑ | ☑ |
+| `20261030000100_kiosco_salida_turno_anterior.sql` (prueba: `kiosco_reingreso.sql`) | ☐ | ☐ |
 
 ## Permisos explícitos en cada tabla nueva
 
