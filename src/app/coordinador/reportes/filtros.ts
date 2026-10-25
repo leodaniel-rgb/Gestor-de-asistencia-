@@ -62,3 +62,12 @@ export function describirRango(f: Pick<Filtros, "periodo" | "desde" | "hasta">):
   const r = prefijo + texto;
   return r.charAt(0).toUpperCase() + r.slice(1);
 }
+
+/** Los mismos filtros, en la URL del Excel y del reporte general. */
+export function consultaFiltros(f: Filtros): string {
+  const q = new URLSearchParams({ vista: f.vista, periodo: f.periodo, desde: f.desde, hasta: f.hasta });
+  if (f.disciplina) q.set("disciplina", f.disciplina);
+  for (const d of f.dias ?? []) q.append("dias", String(d));
+  if (f.corregidas) q.set("corregidas", "1");
+  return q.toString();
+}

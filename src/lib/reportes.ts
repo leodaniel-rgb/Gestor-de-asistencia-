@@ -1,6 +1,7 @@
 // Cálculos de los dashboards a partir de lo que devuelven las funciones
 // reporte_listas y reporte_gimnasio. Funciones puras (se prueban sin base).
 
+import { DIAS } from "./catalogos";
 import { diaSemanaIso, sumarDias } from "./fechas";
 
 export const RANGO_MAXIMO_DIAS = 92; // debe coincidir con privado.validar_rango_reporte
@@ -177,4 +178,48 @@ export function horaPico(entradas: EntradaGimnasio[]): { dia: number; hora: numb
     (a, c) => (c.valor > 0 && (!a || c.valor > a.valor) ? c : a),
     null,
   );
+}
+
+/** Salidas no marcadas por fecha (de los turnos ya cerrados); incluye fechas en 0. */
+export function sinSalidaPorDia(
+  turnos: { fecha: string; sin_salida: number }[],
+  desde: string,
+  hasta: string,
+  dias: number[] | null,
+): { fecha: string; valor: number }[] {
+  const m = new Map<string, number>();
+  for (const t of turnos) m.set(t.fecha, (m.get(t.fecha) ?? 0) + t.sin_salida);
+  return fechasDelRango(desde, hasta)
+    .filter((f) => !dias || dias.includes(diaSemanaIso(f)))
+    .map((fecha) => ({ fecha, valor: m.get(fecha) ?? 0 }));
+}
+
+/** Tabla del reporte general: por sesión si caben; si no, resumida por actividad. */
+export const MAX_SESIONES_DETALLE = 20;
+
+export function resumenPorActividad(
+  sesiones: SesionReporte[],
+): { disciplina: string; sesiones: number; asistencias: number; faltas: number; porcentaje: number | null }[] {
+  const m = new Map<string, { sesiones: number; asistencias: number; faltas: number }>();
+  for (const s of sesiones) {
+    const x = m.get(s.disciplina) ?? { sesiones: 0, asistencias: 0, faltas: 0 };
+    x.sesiones++;
+    x.asistencias += suma(s.asistio);
+    x.faltas += suma(s.falta);
+    m.set(s.disciplina, x);
+  }
+  return [...m]
+    .map(([disciplina, x]) => ({
+      disciplina,
+      ...x,
+      porcentaje: x.asistencias + x.faltas ? Math.round((x.asistencias / (x.asistencias + x.faltas)) * 1000) / 10 : null,
+    }))
+    .sort((a, b) => b.asistencias - a.asistencias || a.disciplina.localeCompare(b.disciplina, "es"));
+}
+
+const fechaCorta = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
+
+/** Etiqueta del eje de días: nombre del día en semanas; fecha corta en rangos largos. */
+export function etiquetaDia(fecha: string, rangoCorto: boolean): string {
+  return rangoCorto ? DIAS[diaSemanaIso(fecha) - 1].largo : fechaCorta.format(new Date(`${fecha}T00:00:00Z`));
 }

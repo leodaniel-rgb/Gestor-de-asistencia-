@@ -76,6 +76,18 @@ export function Tarjeta({
   );
 }
 
+/** Punto rojo discreto: el alumno no tiene género asignado. */
+export function PuntoSinGenero() {
+  return (
+    <span
+      title="Sin género asignado"
+      role="img"
+      aria-label="Sin género asignado"
+      className="inline-block size-1.5 shrink-0 rounded-full bg-danger align-middle"
+    />
+  );
+}
+
 export function Aviso({
   tono = "error",
   children,

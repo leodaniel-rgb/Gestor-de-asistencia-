@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { PuntoSinGenero } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { ETIQUETA_GENERO, type Genero } from "@/lib/catalogos";
+import { leerNota } from "@/lib/notas";
 import { crearClienteServidor } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Alumnos" };
@@ -22,7 +24,7 @@ async function Resultados({ searchParams }: { searchParams: Promise<Record<strin
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
     .from("alumnos")
-    .select("id, matricula, nombre, genero, inscripciones(fecha_baja, disciplinas(nombre))")
+    .select("id, matricula, nombre, genero, alumnos_coordinacion(nota, excluido_reportes), inscripciones(fecha_baja, disciplinas(nombre))")
     .or(`matricula.ilike.${patron},nombre.ilike.${patron}`)
     .order("nombre")
     .limit(50);
@@ -33,6 +35,7 @@ async function Resultados({ searchParams }: { searchParams: Promise<Record<strin
     matricula: string;
     nombre: string;
     genero: Genero | null;
+    alumnos_coordinacion: { nota: string | null; excluido_reportes: boolean } | null;
     inscripciones: { fecha_baja: string | null; disciplinas: { nombre: string } | null }[];
   }[];
   if (alumnos.length === 0) return <p className="text-sm text-fg-muted">Sin resultados.</p>;
@@ -50,9 +53,16 @@ async function Resultados({ searchParams }: { searchParams: Promise<Record<strin
               <span className="text-sm text-fg">
                 {a.nombre} <span className="font-mono text-[13px] text-fg-muted">{a.matricula}</span>
               </span>
-              <span className="text-[13px] text-fg-muted">
-                {a.genero ? ETIQUETA_GENERO[a.genero] : "Género sin asignar"} ·{" "}
-                {vigentes.length ? vigentes.join(", ") : "Sin disciplinas con lista (solo gimnasio o dado de baja)"}
+              <span className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-fg-muted">
+                {a.genero ? (
+                  ETIQUETA_GENERO[a.genero]
+                ) : (
+                  <>
+                    <PuntoSinGenero /> Género sin asignar
+                  </>
+                )}{" "}
+                · {vigentes.length ? vigentes.join(", ") : "Sin disciplinas con lista (solo gimnasio o dado de baja)"}
+                {leerNota(a.alumnos_coordinacion).excluido && " · No cuenta en reportes"}
               </span>
             </Link>
           </li>

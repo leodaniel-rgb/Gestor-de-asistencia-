@@ -96,7 +96,7 @@ Si cambias una regla o decisión, actualiza este archivo **y** `docs/plan.md` en
   - Las sesiones, los registros de gimnasio y los días sin clase se **anulan**, y se pueden restaurar.
   - Las correcciones del coordinador pasan por funciones `admin_*` que exigen un **motivo** (`privado.iniciar_correccion` → `bitacora.motivo`).
   - Cada exportación (Excel o respaldo) se registra con `registrar_exportacion`. Si el registro falla, no hay descarga.
-- **Reportes:** `reporte_listas`, `reporte_gimnasio` y `reporte_asistencias_detalle` excluyen los anulados y las asistencias pendientes de aprobación. El rango máximo es de 92 días.
+- **Reportes:** `reporte_listas`, `reporte_gimnasio` y `reporte_asistencias_detalle` excluyen los anulados, las asistencias pendientes de aprobación y los alumnos marcados como "no contar" (`alumnos_coordinacion`, F8; el respaldo sí los incluye). El rango máximo es de 92 días.
 
 ## Dominio
 
@@ -114,7 +114,7 @@ Si cambias una regla o decisión, actualiza este archivo **y** `docs/plan.md` en
   - Salir del kiosco pide la contraseña del entrenador.
   - El turno olvidado se cierra automáticamente.
 - **Género:** femenino, masculino, no binario o sin asignar. No se captura en el gimnasio.
-- **Dashboards** solo para el coordinador. PNG con fondo claro, Excel editable, aviso de respaldo cada 15 días.
+- **Dashboards** solo para el coordinador. PNG con fondo claro, Excel editable, reporte general en una sola imagen (sin nombres ni matrículas), aviso de respaldo cada 15 días.
 - **Diseño:**
   - Estilo Linear oscuro para el coordinador y claro para las pantallas de captura.
   - Acento verde Tecmilenio `#6dd34b` en oscuro y teal `#0f524e` en claro.

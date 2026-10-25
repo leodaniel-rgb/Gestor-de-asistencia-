@@ -34,7 +34,7 @@ type Props = {
 
 const MAX_PASTEL = 6; // un pastel con más de 6 rebanadas no se lee
 
-function construirOpcion(
+export function construirOpcion(
   p: Pick<Props, "categorias" | "series" | "apiladas" | "coloresCategorias">,
   tipo: TipoGrafica,
   tema: NombreTema,
