@@ -56,6 +56,7 @@ Solo puede existir un coordinador (índice único). El portal no puede crear coo
 | `20261025000100_f5_admin.sql` | ☑ | ☑ |
 | `20261026000100_f6_reportes.sql` | ☑ | ☑ |
 | `20261027000100_f7_respaldos.sql` | ☑ | ☑ |
+| `20261028000100_fix_historial_turnos.sql` (prueba: `fix_historial_turnos.sql`) | ☐ | ☐ |
 
 ## Permisos explícitos en cada tabla nueva
 
