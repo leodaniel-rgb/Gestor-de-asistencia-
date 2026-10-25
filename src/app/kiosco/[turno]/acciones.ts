@@ -10,7 +10,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 
 export type RespuestaKiosco =
   | { tipo: "nuevo" }
-  | { tipo: "entrada" | "salida"; nombreCorto: string }
+  | { tipo: "entrada" | "salida" | "salida_anterior"; nombreCorto: string }
   | { tipo: "listo"; accion: "entrada" | "salida"; nombreCorto: string }
   | { tipo: "error"; mensaje: string }
   | { tipo: "cerrado" };
@@ -41,14 +41,14 @@ export async function buscarAlumno(turno: string, matricula: string): Promise<Re
     if (error.code !== "54000") registrarError("kiosco:buscar", error);
     return traducirError(error);
   }
-  const r = data as { accion: "nuevo" | "entrada" | "salida"; nombre_corto?: string };
+  const r = data as { accion: "nuevo" | "entrada" | "salida" | "salida_anterior"; nombre_corto?: string };
   return r.accion === "nuevo" ? { tipo: "nuevo" } : { tipo: r.accion, nombreCorto: r.nombre_corto ?? "" };
 }
 
 export async function registrarMovimiento(
   turno: string,
   matricula: string,
-  accion: "entrada" | "salida",
+  accion: "entrada" | "salida" | "salida_anterior",
   nombre?: string,
 ): Promise<RespuestaKiosco> {
   await requerirUsuario("entrenador");
@@ -56,7 +56,7 @@ export async function registrarMovimiento(
     .object({
       turno: z.uuid(),
       matricula: esquemaMatricula,
-      accion: z.enum(["entrada", "salida"]),
+      accion: z.enum(["entrada", "salida", "salida_anterior"]),
       nombre: z.string().trim().min(5).max(120).optional(),
     })
     .safeParse({ turno, matricula, accion, nombre });
