@@ -6,6 +6,8 @@ import {
   porActividad,
   porDia,
   resumenListas,
+  resumenPorActividad,
+  sinSalidaPorDia,
   type SesionReporte,
 } from "./reportes";
 
@@ -100,5 +102,33 @@ describe("gimnasio", () => {
     expect(c.celdas).toHaveLength(7 * 12);
     expect(horaPico(entradas)).toEqual({ dia: 1, hora: 7, valor: 2 });
     expect(horaPico([])).toBeNull();
+  });
+});
+
+describe("reporte general", () => {
+  it("suma las salidas no marcadas por día", () => {
+    const turnos = [
+      { fecha: "2026-10-12", sin_salida: 2 },
+      { fecha: "2026-10-12", sin_salida: 1 },
+      { fecha: "2026-10-14", sin_salida: 0 },
+    ];
+    expect(sinSalidaPorDia(turnos, "2026-10-12", "2026-10-14", null)).toEqual([
+      { fecha: "2026-10-12", valor: 3 },
+      { fecha: "2026-10-13", valor: 0 },
+      { fecha: "2026-10-14", valor: 0 },
+    ]);
+    expect(sinSalidaPorDia(turnos, "2026-10-12", "2026-10-14", [3]).map((d) => d.fecha)).toEqual(["2026-10-14"]);
+  });
+
+  it("resume por actividad con porcentaje de asistencia", () => {
+    const r = resumenPorActividad([
+      s("a", "2026-10-12", "Fútbol", [3, 1, 0, 0], [0, 1, 0, 0]),
+      s("b", "2026-10-13", "Fútbol", [2, 2, 0, 0], [0, 0, 0, 0]),
+      s("c", "2026-10-13", "Cocina", [0, 0, 0, 0], [0, 0, 0, 0]),
+    ]);
+    expect(r).toEqual([
+      { disciplina: "Fútbol", sesiones: 2, asistencias: 8, faltas: 1, porcentaje: 88.9 },
+      { disciplina: "Cocina", sesiones: 1, asistencias: 0, faltas: 0, porcentaje: null },
+    ]);
   });
 });

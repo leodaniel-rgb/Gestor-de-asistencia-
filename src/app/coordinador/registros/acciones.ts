@@ -212,3 +212,32 @@ export async function actualizarAlumnoAdmin(_p: EstadoAdmin, formData: FormData)
     "admin:actualizar-alumno",
   );
 }
+
+// --- Nota de coordinación y exclusión de reportes ----------------------------
+
+export async function guardarNotaAlumno(_p: EstadoAdmin, formData: FormData): Promise<EstadoAdmin> {
+  await requerirUsuario("coordinador");
+  const r = z
+    .object({
+      id: z.uuid(),
+      nota: z.string().trim().max(300, "La nota admite máximo 300 caracteres."),
+      excluir: z.boolean(),
+      motivo: z.string().trim().max(300, "Máximo 300 caracteres."),
+    })
+    .safeParse({
+      id: formData.get("id"),
+      nota: formData.get("nota") ?? "",
+      excluir: formData.get("excluir") === "on",
+      motivo: formData.get("motivo") ?? "",
+    });
+  if (!r.success) return { error: r.error.issues[0]?.message };
+  if (r.data.excluir && r.data.nota.length < 5) {
+    return { error: "Para no contarlo en reportes escribe una nota (mínimo 5 caracteres)." };
+  }
+
+  return rpc(
+    "admin_nota_alumno",
+    { p_alumno: r.data.id, p_nota: r.data.nota, p_excluir: r.data.excluir, p_motivo: r.data.motivo || null },
+    "admin:nota-alumno",
+  );
+}

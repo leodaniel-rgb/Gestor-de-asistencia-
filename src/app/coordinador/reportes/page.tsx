@@ -6,12 +6,13 @@ import { MapaCalor } from "@/components/graficas/mapa-calor";
 import { Aviso } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { DIAS, formatearHora } from "@/lib/catalogos";
-import { ahoraMx, describirFecha, diaSemanaIso } from "@/lib/fechas";
+import { ahoraMx, describirFecha } from "@/lib/fechas";
 import { ETIQUETA_TURNO, type NombreTurno } from "@/lib/gimnasio";
 import { registrarError } from "@/lib/registro";
 import {
   concurrencia,
   entradasPorDiaYTurno,
+  etiquetaDia,
   ETIQUETA_GENERO_CORTA,
   horaPico,
   porActividad,
@@ -23,16 +24,9 @@ import {
 } from "@/lib/reportes";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { BarraFiltros } from "./barra-filtros";
-import { describirRango, leerFiltros, type Filtros, type Params } from "./filtros";
+import { consultaFiltros, describirRango, leerFiltros, type Filtros, type Params } from "./filtros";
 
 export const metadata: Metadata = { title: "Reportes" };
-
-const fechaCorta = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
-
-/** Etiqueta del eje de días: nombre del día en semanas; fecha corta en rangos largos. */
-function etiquetaDia(fecha: string, rangoCorto: boolean) {
-  return rangoCorto ? DIAS[diaSemanaIso(fecha) - 1].largo : fechaCorta.format(new Date(`${fecha}T00:00:00Z`));
-}
 
 function Indicador({ etiqueta, valor, detalle }: { etiqueta: string; valor: string; detalle?: string }) {
   return (
@@ -41,6 +35,17 @@ function Indicador({ etiqueta, valor, detalle }: { etiqueta: string; valor: stri
       <span className="text-xs uppercase tracking-wide text-fg-muted">{etiqueta}</span>
       {detalle && <span className="text-xs text-fg-faint">{detalle}</span>}
     </div>
+  );
+}
+
+/** Aviso de alumnos marcados por la coordinación como "no contar en reportes". */
+function Excluidos({ n }: { n: number }) {
+  if (!n) return null;
+  return (
+    <p className="text-[13px] text-info">
+      {n === 1 ? "1 alumno marcado" : `${n} alumnos marcados`} como “No cuenta en reportes” no se incluye
+      {n === 1 ? "" : "n"} (ver su nota en el directorio de alumnos).
+    </p>
   );
 }
 
@@ -63,6 +68,7 @@ async function DashboardListas({ f }: { f: Filtros }) {
     incidencias: { fecha: string; disciplina: string; categoria: string; descripcion: string | null }[];
     sin_clase: { fecha: string; disciplina: string; motivo: string | null }[];
     pendientes: number;
+    excluidos: number;
   };
   const hoy = ahoraMx().fecha;
   const rango = describirRango(f);
@@ -83,6 +89,7 @@ async function DashboardListas({ f }: { f: Filtros }) {
           {r.pendientes} asistencias de alumnos pendientes de aprobación no se incluyen (ver Solicitudes).
         </p>
       )}
+      <Excluidos n={r.excluidos} />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Indicador etiqueta={f.estado === "asistio" ? "Registros de asistencia" : "Faltas"} valor={String(res.total)} />
@@ -251,6 +258,7 @@ async function DashboardGimnasio({ f }: { f: Filtros }) {
     sin_salida: number;
     promedio_minutos: number | null;
     top: { nombre: string; matricula: string; visitas: number }[];
+    excluidos: number;
   };
   const hoy = ahoraMx().fecha;
   const rango = describirRango(f);
@@ -263,6 +271,7 @@ async function DashboardGimnasio({ f }: { f: Filtros }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <Excluidos n={r.excluidos} />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Indicador etiqueta="Entradas" valor={String(r.entradas.length)} />
         <Indicador etiqueta="Alumnos distintos" valor={String(r.alumnos_distintos)} />
@@ -376,15 +385,6 @@ async function DashboardGimnasio({ f }: { f: Filtros }) {
   );
 }
 
-/** Los mismos filtros, en la URL del Excel. */
-function consultaExcel(f: Filtros): string {
-  const q = new URLSearchParams({ vista: f.vista, periodo: f.periodo, desde: f.desde, hasta: f.hasta });
-  if (f.disciplina) q.set("disciplina", f.disciplina);
-  for (const d of f.dias ?? []) q.append("dias", String(d));
-  if (f.corregidas) q.set("corregidas", "1");
-  return q.toString();
-}
-
 // ---------------------------------------------------------------------------
 
 async function Contenido({ searchParams }: { searchParams: Promise<Params> }) {
@@ -424,11 +424,17 @@ async function Contenido({ searchParams }: { searchParams: Promise<Params> }) {
       <BarraFiltros f={f} disciplinas={disciplinas ?? []} />
       <div className="flex flex-wrap items-center gap-3 print:hidden">
         <a
-          href={`/coordinador/reportes/excel?${consultaExcel(f)}`}
+          href={`/coordinador/reportes/excel?${consultaFiltros(f)}`}
           className="inline-flex h-10 items-center rounded-control border border-line px-4 text-sm text-fg-body hover:bg-elevated"
         >
           Descargar Excel
         </a>
+        <Link
+          href={`/coordinador/reportes/general?${consultaFiltros(f)}`}
+          className="inline-flex h-10 items-center rounded-control border border-line px-4 text-sm text-fg-body hover:bg-elevated"
+        >
+          Reporte general (imagen)
+        </Link>
         <span className="text-xs text-fg-faint">
           Datos editables con los filtros actuales{f.vista === "listas" ? ", incluida una hoja por alumno" : ""}. Contiene
           datos personales: guárdalo solo en el almacenamiento institucional.

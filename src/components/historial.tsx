@@ -22,6 +22,8 @@ const OCULTOS = new Set([
   "busquedas_en_ventana",
   "sesion_id",
   "turno_id",
+  "alumno_id",
+  "actualizado_por",
 ]);
 
 const NOMBRE_ENTIDAD: Record<string, string> = {
@@ -32,6 +34,7 @@ const NOMBRE_ENTIDAD: Record<string, string> = {
   registros_gimnasio: "Registro",
   alumnos: "Alumno",
   dias_sin_clase: "Día sin clase",
+  alumnos_coordinacion: "Nota de coordinación",
 };
 
 const VERBO = { insert: "creó", update: "cambió", delete: "quitó" } as const;

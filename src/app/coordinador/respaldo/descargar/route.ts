@@ -71,6 +71,13 @@ export async function GET() {
       ]),
     },
     {
+      nombre: "Notas de alumnos",
+      encabezados: ["Matrícula", "Nombre", "Nota de coordinación", "Excluido de reportes", "Actualizada"],
+      filas: (r.notas_alumnos ?? []).map((n) => [
+        texto(n.matricula), texto(n.nombre), texto(n.nota), siNo(n.excluido_reportes), hora(n.actualizado_en),
+      ]),
+    },
+    {
       nombre: "Inscripciones",
       encabezados: ["Disciplina", "Matrícula", "Nombre", "Alta", "Baja"],
       filas: r.inscripciones.map((i) => [texto(i.disciplina), texto(i.matricula), texto(i.nombre), texto(i.fecha_alta), texto(i.fecha_baja)]),

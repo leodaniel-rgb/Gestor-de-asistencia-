@@ -5,11 +5,13 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { AccionConMotivo } from "@/components/accion-con-motivo";
 import { Historial } from "@/components/historial";
-import { Tarjeta } from "@/components/ui";
+import { NotaAlumno } from "@/components/nota-alumno";
+import { PuntoSinGenero, Tarjeta } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { formatearHora } from "@/lib/catalogos";
 import { ahoraMx, describirFecha } from "@/lib/fechas";
 import { ETIQUETA_TURNO, type NombreTurno } from "@/lib/gimnasio";
+import { leerNota } from "@/lib/notas";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { anularRegistroGimnasio, cerrarTurnoAdmin, corregirSalida } from "../../acciones";
 
@@ -30,7 +32,13 @@ type Turno = {
     salida: string | null;
     anulado: boolean;
     salida_corregida: boolean;
-    alumnos: { id: string; nombre: string; matricula: string } | null;
+    alumnos: {
+      id: string;
+      nombre: string;
+      matricula: string;
+      genero: string | null;
+      alumnos_coordinacion: { nota: string | null; excluido_reportes: boolean } | null;
+    } | null;
   }[];
 };
 
@@ -45,7 +53,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     .select(
       "id, fecha, nombre, abierto_en, cerrado_en, cierre_automatico, disciplinas(nombre), " +
         "abrio:perfiles!turnos_gimnasio_abierto_por_fkey(nombre), " +
-        "registros_gimnasio(id, entrada, salida, anulado, salida_corregida, alumnos(id, nombre, matricula))",
+        "registros_gimnasio(id, entrada, salida, anulado, salida_corregida, alumnos(id, nombre, matricula, genero, alumnos_coordinacion(nota, excluido_reportes)))",
     )
     .eq("id", id.data)
     .maybeSingle();
@@ -87,7 +95,9 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           <p className="text-sm text-fg-muted">Sin registros.</p>
         ) : (
           <ul className="flex flex-col divide-y divide-line">
-            {registros.map((r) => (
+            {registros.map((r) => {
+              const n = leerNota(r.alumnos?.alumnos_coordinacion);
+              return (
               <li key={r.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-start sm:justify-between">
                 <span className="flex flex-col gap-0.5">
                   <Link
@@ -95,7 +105,17 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
                     className={`text-sm hover:underline ${r.anulado ? "text-fg-faint line-through" : "text-fg"}`}
                   >
                     {r.alumnos?.nombre} <span className="font-mono text-[13px] text-fg-muted">{r.alumnos?.matricula}</span>
+                    {r.alumnos && !r.alumnos.genero && (
+                      <>
+                        {" "}
+                        <PuntoSinGenero />
+                      </>
+                    )}
                   </Link>
+                  {n.nota && <span className="text-[13px] text-fg-body">Nota: {n.nota}</span>}
+                  {n.excluido && (
+                    <span className="w-fit rounded-badge border border-line px-1.5 text-xs text-fg-muted">No cuenta en reportes</span>
+                  )}
                   <span className="text-[13px] text-fg-muted">
                     Entrada {formatearHora(r.entrada)} ·{" "}
                     {r.salida ? (
@@ -128,6 +148,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
                       </label>
                     </AccionConMotivo>
                   )}
+                  {r.alumnos && <NotaAlumno alumnoId={r.alumnos.id} nota={n.nota} excluido={n.excluido} />}
                   <AccionConMotivo
                     accion={anularRegistroGimnasio}
                     campos={{ id: r.id, anular: String(!r.anulado) }}
@@ -137,7 +158,8 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
                   />
                 </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </Tarjeta>

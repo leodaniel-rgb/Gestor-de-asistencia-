@@ -16,7 +16,7 @@ type Props = {
 
 const etiquetaHora = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
-function construirOpcion(
+export function construirOpcionCalor(
   p: Pick<Props, "horas" | "celdas" | "maximo">,
   tema: NombreTema,
   encabezado?: { titulo: string; subtitulo: string },
@@ -90,8 +90,8 @@ export function MapaCalor({ titulo, subtitulo, horas, celdas, maximo, nombreArch
   const [verTabla, setVerTabla] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const vacio = maximo === 0;
-  const opcion = construirOpcion({ horas, celdas, maximo }, "oscuro");
-  const opcionImpresion = construirOpcion({ horas, celdas, maximo }, "claro");
+  const opcion = construirOpcionCalor({ horas, celdas, maximo }, "oscuro");
+  const opcionImpresion = construirOpcionCalor({ horas, celdas, maximo }, "claro");
 
   useEffect(() => {
     if (!ref.current || verTabla || vacio) return;
@@ -130,7 +130,7 @@ export function MapaCalor({ titulo, subtitulo, horas, celdas, maximo, nombreArch
               type="button"
               onClick={() =>
                 descargar(
-                  exportarPng(construirOpcion({ horas, celdas, maximo }, "claro", { titulo, subtitulo }), 1200, 520),
+                  exportarPng(construirOpcionCalor({ horas, celdas, maximo }, "claro", { titulo, subtitulo }), 1200, 520),
                   `${nombreArchivo}.png`,
                 )
               }

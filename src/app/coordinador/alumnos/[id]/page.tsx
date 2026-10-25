@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { Historial } from "@/components/historial";
-import { Tarjeta } from "@/components/ui";
+import { NotaAlumno } from "@/components/nota-alumno";
+import { PuntoSinGenero, Tarjeta } from "@/components/ui";
 import { requerirUsuario } from "@/lib/auth/dal";
 import { formatearFecha, type Genero } from "@/lib/catalogos";
+import { leerNota } from "@/lib/notas";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { FormularioAlumno } from "./formulario";
 
@@ -20,7 +22,10 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await crearClienteServidor();
   const { data } = await supabase
     .from("alumnos")
-    .select("id, matricula, nombre, genero, inscripciones(id, fecha_alta, fecha_baja, disciplinas(id, nombre))")
+    .select(
+      "id, matricula, nombre, genero, alumnos_coordinacion(nota, excluido_reportes), " +
+        "inscripciones(id, fecha_alta, fecha_baja, disciplinas(id, nombre))",
+    )
     .eq("id", id.data)
     .maybeSingle();
   const a = data as unknown as {
@@ -28,6 +33,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     matricula: string;
     nombre: string;
     genero: Genero | null;
+    alumnos_coordinacion: { nota: string | null; excluido_reportes: boolean } | null;
     inscripciones: {
       id: string;
       fecha_alta: string;
@@ -36,6 +42,7 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
     }[];
   } | null;
   if (!a) notFound();
+  const n = leerNota(a.alumnos_coordinacion);
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,11 +51,28 @@ async function Contenido({ params }: { params: Promise<{ id: string }> }) {
           ← Alumnos
         </Link>
         <h1 className="text-[28px] font-normal tracking-[-0.022em] text-fg">{a.nombre}</h1>
-        <p className="font-mono text-[13px] text-fg-muted">{a.matricula}</p>
+        <p className="flex items-center gap-2 text-[13px] text-fg-muted">
+          <span className="font-mono">{a.matricula}</span>
+          {!a.genero && (
+            <span className="flex items-center gap-1.5">
+              <PuntoSinGenero /> Sin género asignado
+            </span>
+          )}
+          {n.excluido && <span>· No cuenta en reportes</span>}
+        </p>
       </div>
 
       <Tarjeta>
         <FormularioAlumno alumno={a} />
+      </Tarjeta>
+
+      <Tarjeta className="flex flex-col gap-3">
+        <h2 className="text-[15px] font-medium text-fg">Nota de coordinación</h2>
+        <p className="text-[13px] text-fg-muted">
+          Solo la ve la coordinación. Si no lo cuentas en reportes, sus registros se conservan y vuelven a contar al
+          desmarcarlo.
+        </p>
+        <NotaAlumno alumnoId={a.id} nota={n.nota} excluido={n.excluido} siempreAbierto />
       </Tarjeta>
 
       <Tarjeta className="flex flex-col gap-2">
